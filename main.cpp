@@ -30,16 +30,25 @@ int main( int argc, char* args[] )
             // Setup renderer 
             renderer =  SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED);
 
-            constexpr int a = 1;
-            constexpr int t = 1;
-            /*
-            // Render moving block
-            for (int t=0; t<500; t++) 
-            {
-            */
-                // Set render color to red, then clear ( background will be rendered in this color )
-                SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
-                SDL_RenderClear( renderer );
+            constexpr float a = 1;
+            bool running = true;
+            while (running) {
+
+                // Clear renderer 
+                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                SDL_RenderClear(renderer);
+
+                // Check quit event
+                SDL_Event ev;
+                while (SDL_PollEvent(&ev) != 0) {
+                    if (ev.type == SDL_QUIT) {
+                        running = false;
+                    }
+                }
+
+                // Get ticks
+                Uint32 t = SDL_GetTicks() / 100;
+                printf("ticks: %d\n", t);
 
                 // Creat a rect at pos ( 50, 50 ) that's 50 pixels wide and 50 pixels high.
                 SDL_Rect r;
@@ -56,18 +65,7 @@ int main( int argc, char* args[] )
 
                 // Render the rect to the screen
                 SDL_RenderPresent(renderer);		
-                
-                // Delay for next frame
-                SDL_Delay(100);
-            //}
-            
-            //Hack to get window to stay up
-            SDL_Event e;
-            bool quit = false; 
-            while( quit == false ) 
-               while( SDL_PollEvent( &e ) )
-                    if( e.type == SDL_QUIT )
-                        quit = true;
+            }
 		}
 	}
 
