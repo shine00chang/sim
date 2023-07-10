@@ -1,2 +1,9 @@
 prog.dSYM
 prog
+
+# CMake
+CMakeFiles
+CmakeCache.txt
+compile_commands.json
+Makefile
+.cache
