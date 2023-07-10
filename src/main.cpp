@@ -2,49 +2,17 @@
 #include <iostream>
 #include "SDL.h"
 #include "SDL_timer.h"
+#include "app.h"
 
-//Screen dimension constants
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
-
-
-
-SDL_Window* window = NULL;
-SDL_Renderer* renderer = NULL;
-
-
-bool init() 
-{
-	//Initialize SDL
-	if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) 
-    {
-		printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
-        return false;
-    }
-	else
-	{
-		//Create window
-		window = SDL_CreateWindow( "SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
-		if( window == NULL ) 
-        {
-			printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
-            return false;
-        }
-        // Setup renderer 
-        renderer =  SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED);
-    }
-    return true;
-}
-
-void loop () 
+void loop (Application App) 
 {
     const float a = 1;
     bool running = true;
     while (running) {
 
         // Clear renderer 
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_RenderClear(renderer);
+        SDL_SetRenderDrawColor( App.renderer(), 255, 255, 255, 255);
+        SDL_RenderClear( App.renderer());
 
         // Check quit event
         SDL_Event ev;
@@ -66,38 +34,28 @@ void loop ()
         r.h = 50;
 
         // Set render color to blue ( rect will be rendered in this color )
-        SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
+        SDL_SetRenderDrawColor( App.renderer(), 0, 0, 255, 255 );
 
         // Render rect
-        SDL_RenderFillRect( renderer, &r );
+        SDL_RenderFillRect( App.renderer(), &r );
 
         // Render the rect to the screen
-        SDL_RenderPresent(renderer);		
+        SDL_RenderPresent( App.renderer());
     }	
     return;
 }
 
-void quit () 
-{
-	//Destroy window
-	SDL_DestroyWindow( window );
-
-	//Quit SDL subsystems
-	SDL_Quit();
-
-    return;
-}
-
-
 int main( int argc, char* args[] )
 {
-    if ( !init() ) {
-        printf("Err: Initialization failed\n");
+    Application* App;
+    try {
+        App = new Application();
+    } catch (std::string err) {
+        printf("App initialization failed with: '%s'\n", err.c_str());
         return 1;
     }
 
-    loop();
+    loop(*App);
 
-    quit();
     return 0;
 }
