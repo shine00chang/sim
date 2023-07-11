@@ -1,18 +1,15 @@
-#include <stdio.h>
-#include <iostream>
 #include "SDL.h"
 #include "SDL_timer.h"
 #include "app.h"
+#include "environment.h"
 
-void loop (Application App) 
+#include <stdio.h>
+#include <iostream>
+
+void loop (Application App, Environment Env) 
 {
-    const float a = 1;
     bool running = true;
     while (running) {
-
-        // Clear renderer 
-        SDL_SetRenderDrawColor( App.renderer(), 255, 255, 255, 255);
-        SDL_RenderClear( App.renderer());
 
         // Check quit event
         SDL_Event ev;
@@ -22,40 +19,37 @@ void loop (Application App)
             }
         }
 
-        // Get ticks
-        Uint32 t = SDL_GetTicks() / 100;
-        printf("ticks: %d\n", t);
+        // Movement
+        {
 
-        // Creat a rect at pos ( 50, 50 ) that's 50 pixels wide and 50 pixels high.
-        SDL_Rect r;
-        r.x = 2 * a * t;
-        r.y = 2 * a * t * t;
-        r.w = 50;
-        r.h = 50;
+        }
 
-        // Set render color to blue ( rect will be rendered in this color )
-        SDL_SetRenderDrawColor( App.renderer(), 0, 0, 255, 255 );
+        // Collision
+        Env.collide();
 
-        // Render rect
-        SDL_RenderFillRect( App.renderer(), &r );
-
-        // Render the rect to the screen
-        SDL_RenderPresent( App.renderer());
-    }	
-    return;
+        // Render
+        App.render(Env);
+    }
 }
+
 
 int main( int argc, char* args[] )
 {
     Application* App;
+    Environment* Env;
+
     try {
         App = new Application();
+        Env = new Environment();
+        
+        Body body(200, 0, 50, 50);
+        Env->addBody(body);
     } catch (std::string err) {
         printf("App initialization failed with: '%s'\n", err.c_str());
         return 1;
     }
 
-    loop(*App);
+    loop(*App, *Env);
 
     return 0;
 }

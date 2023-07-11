@@ -16,6 +16,9 @@ set(SOURCES
 set(HEADERS
     src/app.h
     src/environment.h
+    src/collision.h
+    src/core.h
+    src/body.h
 )
 
 include_directories(SDL2/include)

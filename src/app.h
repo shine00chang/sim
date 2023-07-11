@@ -2,8 +2,8 @@
 #define __APP_h__
 
 #include "SDL.h"
+#include "environment.h"
 
-#include <string>
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -16,8 +16,9 @@ public:
      Application();
     ~Application();
 
+    void render(const Environment& env);
+
     SDL_Window* window();
-    SDL_Renderer* renderer();
 };
 
 #endif
