@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CXX_STANDARD 20)
 
 project(physics)
 
@@ -10,6 +9,7 @@ set(SOURCES
     src/app.cpp
     src/collision.cpp
     src/renderer.cpp
+    src/body.cpp
 )
 
 # Add your header files
@@ -25,5 +25,6 @@ include_directories(SDL2/include)
 link_directories(SDL2/lib)
 
 add_executable(prog ${SOURCES} ${HEADERS})
+set_property(TARGET prog PROPERTY CXX_STANDARD 20)
 
 target_link_libraries(prog PUBLIC SDL2)

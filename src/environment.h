@@ -16,7 +16,8 @@ public:
     void collide();
     void addBody(const Body& body) { m_bodies.push_back(body); }  
 
-    const std::vector<Body>& bodies() const { return m_bodies; }
+    std::vector<Body>& getBodiesMut() { return m_bodies; }
+    const std::vector<Body>& getBodies() const { return m_bodies; }
 
 };
 

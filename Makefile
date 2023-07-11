@@ -153,6 +153,30 @@ src/app.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/app.cpp.s
 .PHONY : src/app.cpp.s
 
+src/body.o: src/body.cpp.o
+.PHONY : src/body.o
+
+# target to build an object file
+src/body.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/body.cpp.o
+.PHONY : src/body.cpp.o
+
+src/body.i: src/body.cpp.i
+.PHONY : src/body.i
+
+# target to preprocess a source file
+src/body.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/body.cpp.i
+.PHONY : src/body.cpp.i
+
+src/body.s: src/body.cpp.s
+.PHONY : src/body.s
+
+# target to generate assembly for a file
+src/body.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/body.cpp.s
+.PHONY : src/body.cpp.s
+
 src/collision.o: src/collision.cpp.o
 .PHONY : src/collision.o
 
@@ -237,6 +261,9 @@ help:
 	@echo "... src/app.o"
 	@echo "... src/app.i"
 	@echo "... src/app.s"
+	@echo "... src/body.o"
+	@echo "... src/body.i"
+	@echo "... src/body.s"
 	@echo "... src/collision.o"
 	@echo "... src/collision.i"
 	@echo "... src/collision.s"

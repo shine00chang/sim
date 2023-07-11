@@ -9,13 +9,16 @@ void Application::render(const Environment& env) {
 
 
     // Render each body as rectangle.
-    for (const Body& body : env.bodies()) {
+    for (const Body& body : env.getBodies()) {
+        auto pos  = body.getPos (); pos.y = -pos.y;
+        auto size = body.getSize();
+
         // Creat a rect to represent the body
         SDL_Rect rect;
-        rect.x = body.min.x;
-        rect.y = body.min.y;
-        rect.w = body.max.x - body.min.x;
-        rect.h = body.max.y - body.min.y;
+        rect.x = pos.x - size.x/2;
+        rect.y = pos.y - size.y/2;
+        rect.w = size.x;
+        rect.h = size.y;
 
         // Set render color to blue ( rect will be rendered in this color )
         SDL_SetRenderDrawColor( m_renderer, 100, 100, 100, 255 );
