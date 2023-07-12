@@ -52,24 +52,28 @@ std::optional<Collision> detect(const Body& b1, const Body& b2) {
     }
 
     // No axis possible, find collision 
-    // TODO: Collision Normal
+    double depth;
     Vec2 norm{0,0};
     Vec2 rel = b2.getPos() - b1.getPos();
-    double xOverlap = b1.getSize().x + b2.getSize().x - abs(rel.x);
-    double yOverlap = b1.getSize().y + b2.getSize().y - abs(rel.y);
+    double xOverlap = (b1.getSize().x + b2.getSize().x)/2 - abs(rel.x);
+    double yOverlap = (b1.getSize().y + b2.getSize().y)/2 - abs(rel.y);
 
     if (xOverlap > 0 && xOverlap < yOverlap) 
     {
+        depth = xOverlap;
         if (rel.x > 0) norm = Vec2( 1, 0);
         else           norm = Vec2(-1, 0);
     } 
     else 
     {
+        depth = yOverlap;
+        std::cout << depth;
         if (rel.y > 0) norm = Vec2(0, 1);
         else           norm = Vec2(0,-1);
     }
 
-    return std::make_optional(Collision{norm, 0});
+    norm.normalize();
+    return std::make_optional(Collision{norm, depth});
 }
 
 void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
@@ -78,7 +82,6 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
     Vec2 vR = b1.velo - b2.velo;
     double vRP = vR * collision.norm;
 
-    std::cout << vR << " * " << collision.norm << " -> " << vRP << std::endl;
     // If the velocities are separating, don't resolve
     if (vRP < 0) 
         return;
@@ -86,16 +89,22 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
     double e = 1 + 0.1;
 
     // Calculate impulse (I DON'T GET THIS)
-    double J = e * vRP / ( 1/b1.mass + 1/b2.mass );
+    double J = e * vRP / b1.invMass + b2.invMass;
     Vec2 impulse = collision.norm * J;
     
     // Apply Impulse
-    Vec2 nv1 = b1.velo - impulse * (1 / b1.mass);
-    Vec2 nv2 = b2.velo + impulse * (1 / b2.mass);
-    std::cout << b1.velo << " -> " << nv1 << std::endl;
-    std::cout << b2.velo << " -> " << nv2 << std::endl;
-    b1.velo = nv1;
-    b2.velo = nv2;
+    b1.velo = b1.velo - impulse * b1.invMass;
+    b2.velo = b2.velo + impulse * b2.invMass;
+
+    
+    // (Sink Prevention) Positional Correction, Linear Projection
+    const double percent = 0.2;     // usually 20% to 80% 
+    const double slop    = 0.01;    // usually 0.01 to 0.1 
+    double correction = percent * std::max( collision.depth - slop, (double) 0 ) / (b1.invMass + b2.invMass);
+    Vec2 correctionV = collision.norm * correction;
+
+    b1.pos = b1.pos - correctionV * b1.invMass;
+    b2.pos = b2.pos + correctionV * b2.invMass;
 }
 
 void Environment::collide() {

@@ -5,7 +5,7 @@
 
 struct Collision {
     Vec2 norm;
-    float depth;
+    double depth;
 };
 
 #endif

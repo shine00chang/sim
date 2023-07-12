@@ -1,3 +1,4 @@
+#include "SDL_render.h"
 #include "app.h"
 #include "body.h"
 #include "environment.h"
@@ -8,23 +9,20 @@ void Application::render(const Environment& env) {
     SDL_RenderClear( m_renderer );
 
 
-    // Render each body as rectangle.
+    // Render each body as polygon 
     for (const Body& body : env.getBodies()) {
         auto pos  = body.getPos ();
-        auto size = body.getSize();
 
-        // Creat a rect to represent the body
-        SDL_Rect rect;
-        rect.x = pos.x - size.x/2;
-        rect.y = (SCREEN_HEIGHT - pos.y) - size.y/2;
-        rect.w = size.x;
-        rect.h = size.y;
-
-        // Set render color to blue ( rect will be rendered in this color )
+        // Set render color to grey ( rect will be rendered in this color )
         SDL_SetRenderDrawColor( m_renderer, 100, 100, 100, 255 );
 
-        // Render rect
-        SDL_RenderFillRect( m_renderer, &rect );
+        auto points = body.getPoints();
+        for (int i=0; i<points.size(); i++) {
+            Vec2 a = pos + points[i];
+            Vec2 b = pos + points[i == points.size()-1 ? 0 : i+1];
+
+            SDL_RenderDrawLine( m_renderer, a.x, SCREEN_HEIGHT - a.y, b.x, SCREEN_HEIGHT - b.y);
+        }
     }
 
     // Actually Render

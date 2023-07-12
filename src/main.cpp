@@ -31,18 +31,20 @@ void loop (Application app, Environment env)
             for (Body& body : env.getBodiesMut()) {
 
                 // Gravity
-                if (!body.fixed)
+                if (body.getGravity())
                     body.applyForce(Vec2(0, -9.8 * body.getMass()));
 
-                // Update (Integrate)
                 body.update(dt);
-                if (!body.fixed) 
-                    std::cout << "pos: " << body.getPos() << std::endl;
             }
         }
 
         // Collision
         env.collide();
+
+        /*
+        for (auto& body : env.getBodiesMut())
+            body.update(dt);
+         */
 
         // Render
         app.render(env);
@@ -59,12 +61,16 @@ int main( int argc, char* args[] )
         App = new Application();
         Env = new Environment();
         
-        Body body(300, 500, 50, 50, 10);
-        Body floor(340, 0, 680, 50, 1e10);
-        floor.fixed = true;
+        Body r1 = Body::makeRect(300, 500, 50, 50, 10);
+        Body r2 = Body::makeRect(300, 200, 50, 50, 10);
+        r1.applyForce(Vec2{0, -4000});
 
-        Env->addBody(body);
+        Body floor = Body::makeRect(340, 0, 680, 50, 1e10, false);
+
+        Env->addBody(r1);
+        Env->addBody(r2);
         Env->addBody(floor);
+
     } catch (std::string err) {
         printf("App initialization failed with: '%s'\n", err.c_str());
         return 1;
