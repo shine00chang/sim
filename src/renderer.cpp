@@ -10,13 +10,13 @@ void Application::render(const Environment& env) {
 
     // Render each body as rectangle.
     for (const Body& body : env.getBodies()) {
-        auto pos  = body.getPos (); pos.y = -pos.y;
+        auto pos  = body.getPos ();
         auto size = body.getSize();
 
         // Creat a rect to represent the body
         SDL_Rect rect;
         rect.x = pos.x - size.x/2;
-        rect.y = pos.y - size.y/2;
+        rect.y = (SCREEN_HEIGHT - pos.y) - size.y/2;
         rect.w = size.x;
         rect.h = size.y;
 

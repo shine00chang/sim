@@ -3,6 +3,7 @@
 #include "app.h"
 #include "environment.h"
 
+#include <ostream>
 #include <stdio.h>
 #include <iostream>
 
@@ -35,8 +36,8 @@ void loop (Application app, Environment env)
 
                 // Update (Integrate)
                 body.update(dt);
-
-                printf("(%lf, %lf)\n", body.getPos().x, body.getPos().y);
+                if (!body.fixed) 
+                    std::cout << "pos: " << body.getPos() << std::endl;
             }
         }
 
@@ -58,8 +59,12 @@ int main( int argc, char* args[] )
         App = new Application();
         Env = new Environment();
         
-        Body body(300, 0, 50, 50, 10);
+        Body body(300, 500, 50, 50, 10);
+        Body floor(340, 0, 680, 50, 1e10);
+        floor.fixed = true;
+
         Env->addBody(body);
+        Env->addBody(floor);
     } catch (std::string err) {
         printf("App initialization failed with: '%s'\n", err.c_str());
         return 1;

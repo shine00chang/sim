@@ -1,11 +1,10 @@
 #ifndef __COLLISION_h__
 #define __COLLISION_h__
 
-#include "body.h"
-
+#include "core.h"
 
 struct Collision {
-    Body* a, b;
+    Vec2 norm;
     float depth;
 };
 

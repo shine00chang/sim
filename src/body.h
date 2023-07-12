@@ -1,6 +1,7 @@
 #ifndef __BODY_h__
 #define __BODY_h__
 
+#include "collision.h"
 #include "core.h"
 
 #include <vector>
@@ -38,6 +39,9 @@ public:
     double getMass () const { return mass; }
     Vec2 getPos  () const { return pos; }
     Vec2 getSize () const { return size; }
+    Vec2 getVelo () const { return velo; }
+
+    static void resolve(Body& b1, Body& b2, const Collision& collision); 
 };
 
 #endif
