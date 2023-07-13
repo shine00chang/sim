@@ -8,7 +8,6 @@ void Application::render(const Environment& env) {
     SDL_SetRenderDrawColor( m_renderer, 255, 255, 255, 255);
     SDL_RenderClear( m_renderer );
 
-
     // Render each body as polygon 
     for (const Body& body : env.getBodies()) {
         auto pos  = body.getPos ();

@@ -14,7 +14,7 @@ public:
     ~Environment() {};
 
     void collide();
-    void addBody(const Body& body) { m_bodies.push_back(body); }  
+    Body* addBody(const Body& body) { m_bodies.push_back(body); return &m_bodies.back(); } 
 
     std::vector<Body>& getBodiesMut() { return m_bodies; }
     const std::vector<Body>& getBodies() const { return m_bodies; }

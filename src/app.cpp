@@ -28,4 +28,24 @@ Application::~Application () {
 	SDL_Quit();
 }
 
-SDL_Window*   Application::window()   { return m_window; }
+void Application::updateEvents() {
+    SDL_Event ev;
+    while (SDL_PollEvent(&ev) != 0) {
+        switch( ev.type ){
+        
+        // If app quit
+        case SDL_QUIT:
+            m_running = false;
+            break;
+
+        // Update keys
+        case SDL_KEYDOWN:
+            m_keys.insert(ev.key.keysym.sym);
+            break;
+
+        case SDL_KEYUP:
+            m_keys.erase(ev.key.keysym.sym);
+            break;
+        }
+    }
+}

@@ -2,7 +2,10 @@
 #define __APP_h__
 
 #include "SDL.h"
+#include "SDL_keycode.h"
 #include "environment.h"
+
+#include <set>
 
 
 const int SCREEN_WIDTH = 640;
@@ -11,14 +14,20 @@ const int SCREEN_HEIGHT = 480;
 class Application {
     SDL_Window* m_window;
     SDL_Renderer* m_renderer;
+    std::set<SDL_Keycode> m_keys;
+    bool m_running = true;
 
 public: 
      Application();
     ~Application();
 
     void render(const Environment& env);
+    void updateEvents ();
 
-    SDL_Window* window();
+    bool isPressed (SDL_Keycode k) const { return m_keys.count(k); }
+    bool isRunning () const { return m_running; }
+
+    SDL_Window* window () { return m_window; }
 };
 
 #endif

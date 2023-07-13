@@ -1,27 +1,27 @@
 #include "SDL.h"
 #include "SDL_timer.h"
+#include "SDL_keyboard.h"
 #include "app.h"
 #include "environment.h"
+#include "controller.h"
 
 #include <ostream>
 #include <stdio.h>
 #include <iostream>
+#include <utility>
 
 
 void loop (Application app, Environment env) 
 {
     constexpr double dt = 0.016;
     uint64_t prevIterMs = SDL_GetTicks64();
-    bool running = true;
-    while (running) 
+
+    while (app.isRunning()) 
     {
+
         // Check quit event
-        SDL_Event ev;
-        while (SDL_PollEvent(&ev) != 0) {
-            if (ev.type == SDL_QUIT) {
-                running = false;
-            }
-        }
+        app.updateEvents();
+
         // Get Dt
         const uint64_t ms = SDL_GetTicks64(); 
         if (ms - prevIterMs < dt * 1000) continue;
@@ -29,12 +29,13 @@ void loop (Application app, Environment env)
 
         // Movement
         {
-            for (Body& body : env.getBodiesMut()) {
-
+            for (Body& body : env.getBodiesMut()) 
+            {
                 // Gravity
                 if (body.getGravity())
                     body.applyForce(Vec2(0, -9.8 * body.getMass()));
 
+                // Integration
                 body.update(dt);
             }
         }
@@ -47,32 +48,64 @@ void loop (Application app, Environment env)
     }
 }
 
+/*
+ * Debug / Test purposes. 
+ * WASD to increment position. Arrow keys to apply force.
+ */
+void debugController (Body* body, const Application& app, const Environment& env) {
+    if (app.isPressed(SDLK_w)) {
+        body->setPos(body->getPos() + Vec2(0, 10));
+    }
+}
+
+/*
+ * Two blocks, one with some downward initial velocity, and a floor.
+ * This tests for gravity, basic collision, and sinking.
+ */ 
+Environment testEnv1() {
+    Environment env; 
+
+    auto r1 = Body::makeRect(300, 500, 50, 50, 10);
+    auto r2 = Body::makeRect(300, 200, 50, 50, 10);
+    r1->applyForce(Vec2{0, -4000});
+
+    auto floor = Body::makeRect(340, 0, 680, 50, 1e10, false);
+
+    env.addBody(*r1.release());
+    env.addBody(*r2.release());
+    env.addBody(*floor.release());
+
+    return env;
+}
+
+Environment testEnv2() {
+    Environment env;
+
+    auto r1 = Body::makeRect(300, 500, 50, 50, 10, false);
+    auto r2 = Body::makeRect(300, 200, 50, 50, 10, false);
+
+    env.addBody(*r1.release());
+    env.addBody(*r2.release());
+
+    //controllers.push_back( Controller(r1, debugController) );
+
+    return env;
+}
 
 int main( int argc, char* args[] )
 {
-    Application* App;
-    Environment* Env;
+    Application* app;
 
     try {
-        App = new Application();
-        Env = new Environment();
-        
-        Body r1 = Body::makeRect(300, 500, 50, 50, 10);
-        Body r2 = Body::makeRect(300, 200, 50, 50, 10);
-        r1.applyForce(Vec2{0, -4000});
-
-        Body floor = Body::makeRect(340, 0, 680, 50, 1e10, false);
-
-        Env->addBody(r1);
-        Env->addBody(r2);
-        Env->addBody(floor);
+        app = new Application();
 
     } catch (std::string err) {
         printf("App initialization failed with: '%s'\n", err.c_str());
         return 1;
     }
 
-    loop(*App, *Env);
+    auto env = testEnv1();
+    loop(*app, env);
 
     return 0;
 }
