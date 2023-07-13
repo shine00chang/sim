@@ -10,6 +10,7 @@
 
 void loop (Application app, Environment env) 
 {
+    constexpr double dt = 0.016;
     uint64_t prevIterMs = SDL_GetTicks64();
     bool running = true;
     while (running) 
@@ -23,7 +24,7 @@ void loop (Application app, Environment env)
         }
         // Get Dt
         const uint64_t ms = SDL_GetTicks64(); 
-        const double   dt = (ms - prevIterMs) / 1000.0; 
+        if (ms - prevIterMs < dt * 1000) continue;
         prevIterMs = ms;
 
         // Movement

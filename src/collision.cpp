@@ -54,6 +54,7 @@ std::optional<Collision> detect(const Body& b1, const Body& b2) {
     }
 
     // No axis possible, find collision 
+    // TODO: Assumes AABB
     double depth;
     Vec2 norm{0,0};
     Vec2 rel = b2.getPos() - b1.getPos();
