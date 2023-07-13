@@ -1,4 +1,5 @@
 #include "body.h"
+#include "app.h"
 #include <memory>
 
 void Body::applyForce(const Vec2 &f) {
@@ -37,4 +38,9 @@ std::unique_ptr<Body> Body::makeDiamond(double x, double y, double r, double m) 
     std::unique_ptr<Body> ptr( new Body(x, y, v, m) );
 
     return ptr;
+}
+
+void Body::runControllers(const Application &app) {
+    for (auto c : m_controllers) 
+        c(this, app);
 }

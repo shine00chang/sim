@@ -3,11 +3,12 @@
 
 #include "collision.h"
 #include "core.h"
+#include "controller.h"
 
 #include <vector>
 #include <memory>
 
-
+class Application;
 class Body 
 {
     bool gravity;
@@ -21,6 +22,7 @@ class Body
     Vec2 accl{0, 0};
     Vec2 velo{0, 0};
 
+    std::vector<Controller> m_controllers;
 
 public: 
      Body(double x, double y, std::vector<Vec2> points, double mass, bool gravity = true) : 
@@ -36,6 +38,9 @@ public:
     };
 
     ~Body() {};
+
+    void useController  (Controller controller) { m_controllers.push_back(controller); }
+    void runControllers (const Application& app); 
 
     void applyForce (const Vec2& f);
     void update(const double dt);

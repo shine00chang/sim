@@ -31,6 +31,9 @@ void loop (Application app, Environment env)
         {
             for (Body& body : env.getBodiesMut()) 
             {
+                // Controllers
+                body.runControllers(app);
+
                 // Gravity
                 if (body.getGravity())
                     body.applyForce(Vec2(0, -9.8 * body.getMass()));
@@ -52,9 +55,18 @@ void loop (Application app, Environment env)
  * Debug / Test purposes. 
  * WASD to increment position. Arrow keys to apply force.
  */
-void debugController (Body* body, const Application& app, const Environment& env) {
+void debugController (Body* body, const Application& app) {
     if (app.isPressed(SDLK_w)) {
-        body->setPos(body->getPos() + Vec2(0, 10));
+        body->applyForce(Vec2(0, 10));
+    }
+    if (app.isPressed(SDLK_a)) {
+        body->applyForce(Vec2(-10, 0));
+    }
+    if (app.isPressed(SDLK_s)) {
+        body->applyForce(Vec2(0, -10));
+    }
+    if (app.isPressed(SDLK_d)) {
+        body->applyForce(Vec2(10, 0));
     }
 }
 
@@ -84,10 +96,11 @@ Environment testEnv2() {
     auto r1 = Body::makeRect(300, 500, 50, 50, 10, false);
     auto r2 = Body::makeRect(300, 200, 50, 50, 10, false);
 
+    r1->useController(debugController);
+
     env.addBody(*r1.release());
     env.addBody(*r2.release());
 
-    //controllers.push_back( Controller(r1, debugController) );
 
     return env;
 }
@@ -104,7 +117,7 @@ int main( int argc, char* args[] )
         return 1;
     }
 
-    auto env = testEnv1();
+    auto env = testEnv2();
     loop(*app, env);
 
     return 0;
