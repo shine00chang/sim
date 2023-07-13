@@ -41,11 +41,6 @@ void loop (Application app, Environment env)
         // Collision
         env.collide();
 
-        /*
-        for (auto& body : env.getBodiesMut())
-            body.update(dt);
-         */
-
         // Render
         app.render(env);
     }

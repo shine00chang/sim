@@ -14,6 +14,7 @@ struct Vec2 {
     const Vec2   operator * (const double o) const { return Vec2 (x*o, y*o); }
     const double operator * (const Vec2& o)  const { return x*o.x + y*o.y; }
 
+    bool isNorm () const { return x * x + y * y == 1; };
     Vec2* normalize () {
         double mag = std::sqrt(x * x + y * y);
         x /= mag; 

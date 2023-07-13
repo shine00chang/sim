@@ -2,6 +2,8 @@
 #include "environment.h"
 #include "collision.h"
 
+#include <limits>
+#include <utility>
 #include <vector>
 #include <list>
 #include <optional>
@@ -13,19 +15,20 @@ std::vector<Body>& boardphase(Environment& env) {
 }
 
 std::pair<double, double> getMinMax(const Body& body, const Vec2& axis) {
-    // TODO: Temp: Assume AABB
-    //
-    if (axis.x == 0 && axis.y == 1) 
-    {
-        return std::make_pair(body.getPos().x, body.getPos().x + body.getSize().x);
-    }
+    assert(axis.isNorm());
 
-    if (axis.x == 1 && axis.y == 0) 
-    {
-        return std::make_pair(body.getPos().y, body.getPos().y + body.getSize().y);
-    }
+    auto min = std::numeric_limits<double>::max();
+    auto max = std::numeric_limits<double>::min();
 
-    assert(false);
+    for (const Vec2& point : body.getPoints())  
+    {
+        Vec2 p = body.getPos() + point;
+        double v = p * axis;
+        
+        if (v < min) min = v;
+        if (v > max) max = v;
+    }
+    return std::make_pair(min, max);
 }
 
 std::optional<Collision> detect(const Body& b1, const Body& b2) {
@@ -44,7 +47,6 @@ std::optional<Collision> detect(const Body& b1, const Body& b2) {
         // Get min & max projection
         auto [min1, max1] = getMinMax(b1, axis);
         auto [min2, max2] = getMinMax(b2, axis);
-
 
         // If no overlap 
         if (max1 < min2 || max2 < min1) 
@@ -67,7 +69,6 @@ std::optional<Collision> detect(const Body& b1, const Body& b2) {
     else 
     {
         depth = yOverlap;
-        std::cout << depth;
         if (rel.y > 0) norm = Vec2(0, 1);
         else           norm = Vec2(0,-1);
     }
