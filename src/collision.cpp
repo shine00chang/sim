@@ -78,6 +78,68 @@ std::optional<Collision> detect(const Body& b1, const Body& b2) {
     return std::make_optional(Collision{norm, depth});
 }
 
+Vec2 orthogonalTowards(const Vec2& _v1, const Vec2& _v2) {
+    Vec3 v1 (_v1.x, _v1.y, 0);
+    Vec3 v2 (_v2.x, _v2.y, 0);
+
+    Vec3 o = v1 ^ v2 ^ v1;
+    if (o.z != 0) {
+        assert(false);
+    }
+
+    return Vec2(o.x, o.y).normalize();
+}
+
+Vec2 support (const std::vector<Vec2>& p, const Vec2& d) {
+    int out = 0;
+    int best = 0;
+    for (int i=0; i<p.size(); i++) 
+        if (d * p[i] > best) {
+            best = d * p[i];
+            out = i;
+        }
+    return p[out];
+}
+
+Vec2 CSOsupport (const Body& b1, const Body& b2, const Vec2& d) {
+    auto s1 = support(b1.getPoints(),  d);
+    auto s2 = support(b2.getPoints(), -d);
+
+    return (b1.getPos() + s1) - (b2.getPos() + s2);
+}
+
+
+std::optional<Collision> detectGJK(const Body& b1, const Body& b2) {
+    
+    Vec2 d (0, 1);
+    Vec2 p1 = CSOsupport(b1, b2, d);
+    d =  (-p1).normalize();
+    Vec2 p2 = CSOsupport(b1, b2, d);
+
+    while (1) {
+        d = orthogonalTowards(p2-p1, -p1); 
+        Vec2 p3 = CSOsupport(b1, b2, d);
+
+
+        if (p3 * d < 0) {
+            return std::nullopt;
+        }
+
+        if (-p3 * orthogonalTowards(p3-p1, p1-p2) > 0) {
+            std::cout << "kept p1\n";
+            p2 = p3;
+        }
+        if (-p3 * orthogonalTowards(p3-p2, p2-p1) > 0) {
+            std::cout << "kept p2\n";
+            p1 = p3;
+        }
+        else {
+            return Collision{Vec2(0,0), 0};
+        }
+    }
+}
+
+
 void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
 
     // Find projected relative Velocity
@@ -120,12 +182,16 @@ void Environment::collide() {
         for (int j=i+1; j<bodyList.size(); j++) 
         {
             // Check for collision
-            std::optional<Collision> opt = detect(bodyList[i], bodyList[j]);
+            std::optional<Collision> opt = detectGJK(bodyList[i], bodyList[j]);
             if (!opt) continue;
             auto collision = *opt;
 
             // Resolve collision
-            Body::resolve(bodyList[i], bodyList[j], collision);
+            // DEBUG: Set color to red 
+            bodyList[i].color = SDL_Color{255,0,0};
+            bodyList[j].color = SDL_Color{255,0,0};
+
+            // Body::resolve(bodyList[i], bodyList[j], collision);
         }
     }
 }

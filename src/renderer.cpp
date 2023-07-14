@@ -13,7 +13,7 @@ void Application::render(const Environment& env) {
         auto pos  = body.getPos ();
 
         // Set render color to grey ( rect will be rendered in this color )
-        SDL_SetRenderDrawColor( m_renderer, 100, 100, 100, 255 );
+        SDL_SetRenderDrawColor( m_renderer, body.color.r, body.color.g, body.color.b, body.color.a);
 
         auto points = body.getPoints();
         for (int i=0; i<points.size(); i++) {

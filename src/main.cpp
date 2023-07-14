@@ -31,6 +31,9 @@ void loop (Application app, Environment env)
         {
             for (Body& body : env.getBodiesMut()) 
             {
+                // DEBUG: Set color to red on collision: Reset
+                body.color = SDL_Color{0,0,0};
+                
                 // Controllers
                 body.runControllers(app);
 
@@ -57,16 +60,16 @@ void loop (Application app, Environment env)
  */
 void debugController (Body* body, const Application& app) {
     if (app.isPressed(SDLK_w)) {
-        body->applyForce(Vec2(0, 10));
+        body->applyForce(Vec2(0, 100));
     }
     if (app.isPressed(SDLK_a)) {
-        body->applyForce(Vec2(-10, 0));
+        body->applyForce(Vec2(-100, 0));
     }
     if (app.isPressed(SDLK_s)) {
-        body->applyForce(Vec2(0, -10));
+        body->applyForce(Vec2(0, -100));
     }
     if (app.isPressed(SDLK_d)) {
-        body->applyForce(Vec2(10, 0));
+        body->applyForce(Vec2(100, 0));
     }
 }
 

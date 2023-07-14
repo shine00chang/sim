@@ -1,6 +1,7 @@
 #ifndef __BODY_h__
 #define __BODY_h__
 
+#include "SDL.h"
 #include "collision.h"
 #include "core.h"
 #include "controller.h"
@@ -25,6 +26,8 @@ class Body
     std::vector<Controller> m_controllers;
 
 public: 
+    SDL_Color color {0,0,0}; 
+
      Body(double x, double y, std::vector<Vec2> points, double mass, bool gravity = true) : 
          gravity(gravity),
          mass(mass), 
