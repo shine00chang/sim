@@ -85,6 +85,12 @@ std::optional<Collision> detect(const Body& b1, const Body& b2) {
 
 // Given two vectors, find a normalized vector orthogonal to v1, in the direction of v2.
 Vec2 orthogonalTowards(const Vec2& _v1, const Vec2& _v2) {
+
+    // if v1 and v2 lie on the same vector, you cannot select an orthogonal vector towards v2.
+    if (_v1.norm() == _v2.norm() || _v1.norm() == -_v2.norm()) {
+        assert(false);
+    }
+
     Vec3 v1 (_v1.x, _v1.y, 0);
     Vec3 v2 (_v2.x, _v2.y, 0);
 
@@ -94,6 +100,10 @@ Vec2 orthogonalTowards(const Vec2& _v1, const Vec2& _v2) {
     }
 
     return Vec2(o.x, o.y).normalize();
+}
+
+double distOfFace(const Vec2& v1, const Vec2& v2) {
+    return -v1 * orthogonalTowards(v1-v2, -v1);
 }
 
 // Calculates the support point of a polygon for a given direction.
@@ -119,19 +129,55 @@ Vec2 CSOsupport (const Body& b1, const Body& b2, const Vec2& d) {
     return (b1.getPos() + s1) - (b2.getPos() + s2);
 }
 
+std::tuple<int, double, Vec2, Vec2> findClosestEdge (const std::vector<Vec2>& pts) {
+    double minDist = 0;
+    int min = 0;
+
+    for (int i=0; i<pts.size(); i++) {
+        const Vec2& a = pts[i == 0 ? pts.size() - 1 : i-1];
+        const Vec2& b = pts[i];
+
+        double dist = orthogonalTowards(a-b, a) * a;
+        if (i == 0 || dist < minDist) {
+            min = i;
+            minDist = dist;
+        }
+        //std::cout << "candidate: " << a << ", " << b << "\tdist: " << dist << std::endl;
+    }
+
+    return std::make_tuple(min-1, minDist, pts[min == 0 ? pts.size()-1 : min-1], pts[min]);
+}
+
 // GJK Collision detection
 std::optional<Collision> detectGJK(const Body& b1, const Body& b2) {
-    
+    /*
+    {
+        std::cout << CSOsupport(b1, b2, Vec2(1,1)) << std::endl;
+        std::cout << CSOsupport(b1, b2, Vec2(-1,1)) << std::endl;
+        std::cout << CSOsupport(b1, b2, Vec2(-1,-1)) << std::endl;
+        std::cout << CSOsupport(b1, b2, Vec2(1,-1)) << std::endl;
+    }
+    */
     // Find Initial points. Use a random direction, then Op1.
     Vec2 d (0, 1);
     Vec2 p1 = CSOsupport(b1, b2, d);
     d =  (-p1).normalize();
     Vec2 p2 = CSOsupport(b1, b2, d);
+    Vec2 p3(0, 0);
+
+    //std::cout << "initial: " << p1 << ", " << p2 << std::endl; 
 
     while (1) {
         // Find third point.
-        d = orthogonalTowards(p2-p1, -p1); 
-        Vec2 p3 = CSOsupport(b1, b2, d);
+        const Vec2 edge = p2 - p1;
+        if (edge.norm() == p1.norm() || edge.norm() == -p1.norm()) {
+            d = Vec2(-edge.y, edge.x); 
+        } else 
+            d = orthogonalTowards(edge, -p1); 
+
+        p3 = CSOsupport(b1, b2, d);
+
+        //std::cout << "d: " << d << "\tp3: " << p3 << std::endl; 
 
         // If p3 does not pass the origin, the simplex can never include the origin.
         if (p3 * d < 0) {
@@ -140,34 +186,69 @@ std::optional<Collision> detectGJK(const Body& b1, const Body& b2) {
 
         // If origin is in the direction of face p1, p3, drop p2.
         if (-p3 * orthogonalTowards(p3-p1, p1-p2) > 0) {
-            std::cout << "kept p1\n";
+            //std::cout << "kept p1\n";
             p2 = p3;
         }
         // If origin is in the direction of face p2, p3, drop p1.
         if (-p3 * orthogonalTowards(p3-p2, p2-p1) > 0) {
-            std::cout << "kept p2\n";
+            //std::cout << "kept p2\n";
             p1 = p3;
         }
         // Otherwise, origin is within simplex, break & continue to EPA
         else {
             break;
-            return Collision{Vec2(0,0), 0};
         }
     }
 
     // TODO: EPA
-    // d := Find face closest to origin
-    // p := Support(d)
+    // (a, b) := Find face closest to origin
+    // d := orthoTowards(ab, aO)
+    // p := Support(orthoTowards(ab, aO))
     // if p is new => Insert P into polytope
     // if p is already in polytope => {
-    //   norm := p-p
+    //   norm := d
+    //   depth: || closet point ||
     // }
+
+    std::vector<Vec2> pts {p1, p2, p3};
+
+    int i = 0;
+    while (i++ < 10) {
+
+        /*
+        std::cout << "Polytope: ";
+        for (auto& v : pts) 
+            std::cout << v << ", ";
+        std::cout << "\n";
+        */
+        
+
+        // TODO: Find Edge closest to Origin
+        const auto [index, dist, A, B] = findClosestEdge(pts);
+        const Vec2 d = orthogonalTowards(A-B, A);
+        const Vec2 P = CSOsupport(b1, b2, d);
+
+        // Debug
+        //std::cout << "Selected: " << A << ", " << B << "\tindex: " << index << "\tdist: " << dist << "\td : " << d << "\tP : " << P << std::endl;
+
+        // If support function returned a point no further from the origin
+        // meaning the current edge is already the furthest edge from the origin
+        // this is the closest edge on the polytope to the origin
+        // TODO: Check logic
+        // if ((P-A) * d < 0.001) 
+        if (P == A || P == B) {
+            //std::cout << "RETURNED\td : " << d << "\tmin : " << dist << std::endl;
+            return Collision{d, dist};
+        }
+        
+        pts.insert(pts.begin() + index+1, P);
+    }
+    assert(false);
 }
 
 // Resolve a collision between two bodies.
 // -> Impulse resolution
 void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
-
     // Find projected relative Velocity
     Vec2 vR = b1.velo - b2.velo;
     double vRP = vR * collision.norm;
@@ -218,7 +299,7 @@ void Environment::collide() {
             bodyList[i].color = SDL_Color{255,0,0};
             bodyList[j].color = SDL_Color{255,0,0};
 
-            // Body::resolve(bodyList[i], bodyList[j], collision);
+            Body::resolve(bodyList[i], bodyList[j], collision);
         }
     }
 }

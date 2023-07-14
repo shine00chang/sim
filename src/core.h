@@ -14,14 +14,18 @@ struct Vec2 {
     inline Vec2   operator - (const Vec2& o)  const { return Vec2 (x-o.x, y-o.y); }
     inline Vec2   operator * (const double o) const { return Vec2 (x*o, y*o); }
     inline double operator * (const Vec2& o)  const { return x*o.x + y*o.y; }
+    inline bool   operator ==(const Vec2& o)  const { return x == o.x && y == o.y; }
 
     inline bool isNorm () const { return x * x + y * y == 1; };
+    Vec2 norm () const {
+        double m = mag();
+        return Vec2(x / m, y / m);
+    }
     Vec2& normalize () {
-        double mag = std::sqrt(x * x + y * y);
-        x /= mag; 
-        y /= mag;
+        *this = norm();
         return *this;
     }
+    inline double mag () const { return std::sqrt(x*x + y*y); }
 
     friend std::ostream& operator<<(std::ostream& os, const Vec2& o) { os << "(" << o.x << ", " << o.y << ")"; return os; }
 };
@@ -36,6 +40,8 @@ struct Vec3 {
     inline Vec3   operator - (const Vec3& o)  const { return Vec3 (x-o.x, y-o.y, z-o.z); }
     inline Vec3   operator * (const double o) const { return Vec3 (x*o, y*o, z*o); }
     inline double operator * (const Vec3& o)  const { return x*o.x + y*o.y + z*o.z; }
+    inline bool   operator ==(const Vec3& o)  const { return x == o.x && y == o.y && z == o.z; }
+
     Vec3   operator ^ (const Vec3& o)  const {
         return Vec3(
             y * o.z - z * o.y,
@@ -45,13 +51,19 @@ struct Vec3 {
     }
 
     inline bool isNorm () const { return x * x + y * y + z * z == 1; };
+    Vec3 norm () const {
+        double m = mag();
+        return Vec3(
+                x / m,
+                y / m,
+                z / m);
+    }
     Vec3& normalize () {
-        double mag = std::sqrt(x * x + y * y + z * z);
-        x /= mag; 
-        y /= mag;
-        z /= mag;
+        *this = norm();
         return *this;
     }
+
+    inline double mag () const { return std::sqrt(x*x + y*y + z*z); }
 
     friend std::ostream& operator<<(std::ostream& os, const Vec3& o) { os << "(" << o.x << ", " << o.y << ", " << o.z << ")"; return os; }
 };

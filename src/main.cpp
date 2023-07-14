@@ -100,8 +100,8 @@ Environment testEnv1() {
 Environment testEnv2() {
     Environment env;
 
-    auto r1 = Body::makeRect(300, 500, 50, 50, 10, false);
-    auto r2 = Body::makeRect(300, 200, 50, 50, 10, false);
+    auto r1 = Body::makeRect(300, 300, 50, 50, 10, false);
+    auto r2 = Body::makeRect(200, 200, 50, 50, 10, false);
 
     r1->useController(debugController);
 
