@@ -74,7 +74,7 @@ void debugController (Body* body, const Application& app) {
 }
 
 /*
- * Two blocks, one with some downward initial velocity, and a floor.
+ * A floor and two blocks, one with some downward initial velocity
  * This tests for gravity, basic collision, and sinking.
  */ 
 Environment testEnv1() {
@@ -93,6 +93,10 @@ Environment testEnv1() {
     return env;
 }
 
+/*
+ * Two blocks, one with a force controller, and no gravity.
+ * Tests for collision detection & resolution.
+ */ 
 Environment testEnv2() {
     Environment env;
 

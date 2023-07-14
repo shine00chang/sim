@@ -9,17 +9,21 @@
 #include <optional>
 
 
+// Boardphase
 std::vector<Body>& boardphase(Environment& env) {
     // TODO
     return env.getBodiesMut();
 }
 
+// SAT helper: Get the min & max vertex from a shape projected onto an axis
 std::pair<double, double> getMinMax(const Body& body, const Vec2& axis) {
+    // Axis must be normal
     assert(axis.isNorm());
 
     auto min = std::numeric_limits<double>::max();
     auto max = std::numeric_limits<double>::min();
 
+    // Iteratively find min & max
     for (const Vec2& point : body.getPoints())  
     {
         Vec2 p = body.getPos() + point;
@@ -31,6 +35,7 @@ std::pair<double, double> getMinMax(const Body& body, const Vec2& axis) {
     return std::make_pair(min, max);
 }
 
+// SAT collision detection
 std::optional<Collision> detect(const Body& b1, const Body& b2) {
 
     // Find normals
@@ -78,6 +83,7 @@ std::optional<Collision> detect(const Body& b1, const Body& b2) {
     return std::make_optional(Collision{norm, depth});
 }
 
+// Given two vectors, find a normalized vector orthogonal to v1, in the direction of v2.
 Vec2 orthogonalTowards(const Vec2& _v1, const Vec2& _v2) {
     Vec3 v1 (_v1.x, _v1.y, 0);
     Vec3 v2 (_v2.x, _v2.y, 0);
@@ -90,7 +96,10 @@ Vec2 orthogonalTowards(const Vec2& _v1, const Vec2& _v2) {
     return Vec2(o.x, o.y).normalize();
 }
 
+// Calculates the support point of a polygon for a given direction.
+// -> Iteratively search for vertex with the max projection onto the given direction.
 Vec2 support (const std::vector<Vec2>& p, const Vec2& d) {
+
     int out = 0;
     int best = 0;
     for (int i=0; i<p.size(); i++) 
@@ -101,6 +110,8 @@ Vec2 support (const std::vector<Vec2>& p, const Vec2& d) {
     return p[out];
 }
 
+// Calculates the support point for the Minkowski difference between two bodies.
+// -> Subtract the support points from the two bodies.
 Vec2 CSOsupport (const Body& b1, const Body& b2, const Vec2& d) {
     auto s1 = support(b1.getPoints(),  d);
     auto s2 = support(b2.getPoints(), -d);
@@ -108,38 +119,53 @@ Vec2 CSOsupport (const Body& b1, const Body& b2, const Vec2& d) {
     return (b1.getPos() + s1) - (b2.getPos() + s2);
 }
 
-
+// GJK Collision detection
 std::optional<Collision> detectGJK(const Body& b1, const Body& b2) {
     
+    // Find Initial points. Use a random direction, then Op1.
     Vec2 d (0, 1);
     Vec2 p1 = CSOsupport(b1, b2, d);
     d =  (-p1).normalize();
     Vec2 p2 = CSOsupport(b1, b2, d);
 
     while (1) {
+        // Find third point.
         d = orthogonalTowards(p2-p1, -p1); 
         Vec2 p3 = CSOsupport(b1, b2, d);
 
-
+        // If p3 does not pass the origin, the simplex can never include the origin.
         if (p3 * d < 0) {
             return std::nullopt;
         }
 
+        // If origin is in the direction of face p1, p3, drop p2.
         if (-p3 * orthogonalTowards(p3-p1, p1-p2) > 0) {
             std::cout << "kept p1\n";
             p2 = p3;
         }
+        // If origin is in the direction of face p2, p3, drop p1.
         if (-p3 * orthogonalTowards(p3-p2, p2-p1) > 0) {
             std::cout << "kept p2\n";
             p1 = p3;
         }
+        // Otherwise, origin is within simplex, break & continue to EPA
         else {
+            break;
             return Collision{Vec2(0,0), 0};
         }
     }
+
+    // TODO: EPA
+    // d := Find face closest to origin
+    // p := Support(d)
+    // if p is new => Insert P into polytope
+    // if p is already in polytope => {
+    //   norm := p-p
+    // }
 }
 
-
+// Resolve a collision between two bodies.
+// -> Impulse resolution
 void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
 
     // Find projected relative Velocity
@@ -171,6 +197,7 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
     b2.pos = b2.pos + correctionV * b2.invMass;
 }
 
+// Checks for collisions and resolves accordingly.
 void Environment::collide() {
         
     // Prune with boardphase

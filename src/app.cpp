@@ -28,6 +28,7 @@ Application::~Application () {
 	SDL_Quit();
 }
 
+// Check & Update state according to events.
 void Application::updateEvents() {
     SDL_Event ev;
     while (SDL_PollEvent(&ev) != 0) {
