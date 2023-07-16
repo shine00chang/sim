@@ -6,4 +6,5 @@ Writing this as C++ practice and also learning some basic physics simulation met
 
 ### Final Goal:
 - Billards
+- Angry Birds -1
 - Lunar Lander stabilization sim

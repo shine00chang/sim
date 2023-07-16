@@ -12,7 +12,7 @@
 class Application;
 class Body 
 {
-    bool gravity;
+    bool gravity = true;
 
     double mass;
     double invMass;
@@ -28,8 +28,7 @@ class Body
 public: 
     SDL_Color color {0,0,0}; 
 
-     Body(double x, double y, std::vector<Vec2> points, double mass, bool gravity = true) : 
-         gravity(gravity),
+     Body(double x, double y, std::vector<Vec2> points, double mass) : 
          mass(mass), 
          invMass(1 / mass),
          points(points), 
@@ -65,7 +64,7 @@ public:
     static void resolve(Body& b1, Body& b2, const Collision& collision); 
 
     // Convenience factories
-    static std::unique_ptr<Body> makeRect(double x, double y, double w, double h, double m, bool gravity = true);
+    static std::unique_ptr<Body> makeRect(double x, double y, double w, double h, double m);
     static std::unique_ptr<Body> makeDiamond(double x, double y, double r, double m);
 };
 

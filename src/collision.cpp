@@ -260,7 +260,7 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
     double e = 1 + 0.1;
 
     // Calculate impulse (I DON'T GET THIS)
-    double J = e * vRP / b1.invMass + b2.invMass;
+    double J = e * vRP / (b1.invMass + b2.invMass);
     Vec2 impulse = collision.norm * J;
     
     // Apply Impulse
