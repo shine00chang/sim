@@ -16,7 +16,16 @@ void Body::update(const double dt) {
     // Integrate Velocity
     pos = pos + velo * dt;
 
+    // Reset Accl
     accl = Vec2{0, 0};
+
+    // Integrate Ang Accl
+    angVelo += angAccl * dt;
+
+    // Integrate Ang Velocity
+    orient += angVelo * dt;
+
+    angAccl = 0;
 }
 
 // Have controllers act on object. 

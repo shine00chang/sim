@@ -20,8 +20,12 @@ class Body
     std::vector<Vec2> points;
 
     Vec2 pos;
-    Vec2 accl{0, 0};
     Vec2 velo{0, 0};
+    Vec2 accl{0, 0};
+
+    double orient = 0;
+    double angVelo = 0;
+    double angAccl = 0;
 
     std::vector<Controller> m_controllers;
 
@@ -52,13 +56,28 @@ public:
     bool getGravity () const { return gravity; }
     Vec2 getPos     () const { return pos; }
     Vec2 getVelo    () const { return velo; }
-    Vec2 getSize    () const { return Vec2(50, 50); } // TODO: CHANGE
-    const std::vector<Vec2>& getPoints () const { return points; }
+    double getAngAccl () const { return angAccl; }
+
+    // Point getters, has transformation logic 
+    const std::vector<Vec2>& getPointsRaw    () const { return points; }
+    const std::vector<Vec2> getPointsLocal  () const { 
+        auto v = points;
+        for (Vec2& p : v) 
+            p = p.rotate(orient);
+        return v;
+    }
+    const std::vector<Vec2> getPointsGlobal () const { 
+        auto v = points;
+        for (Vec2& p : v) 
+            p = p.rotate(orient) + pos;
+        return v;
+    }
     
     // Setter
     void setGravity (bool b)        { gravity = b; }
     void setPos     (const Vec2& v) { pos = v; }
     void setVelo    (const Vec2& v) { velo = v; } 
+    void setAngAccl (double a)      { angAccl = a; }
 
     // Collision Resolver 
     static void resolve(Body& b1, Body& b2, const Collision& collision); 

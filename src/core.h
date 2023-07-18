@@ -16,6 +16,7 @@ struct Vec2 {
     inline double operator * (const Vec2& o)  const { return x*o.x + y*o.y; }
     inline bool   operator ==(const Vec2& o)  const { return x == o.x && y == o.y; }
 
+    inline double mag () const { return std::sqrt(x*x + y*y); }
     inline bool isNorm () const { return x * x + y * y == 1; };
     Vec2 norm () const {
         double m = mag();
@@ -25,7 +26,13 @@ struct Vec2 {
         *this = norm();
         return *this;
     }
-    inline double mag () const { return std::sqrt(x*x + y*y); }
+
+    Vec2 rotate (double rad) {
+        double c = std::cos(rad);
+        double s = std::sin(rad);
+        return Vec2(c*x - s*y,
+                    s*x + c*y);
+    }
 
     friend std::ostream& operator<<(std::ostream& os, const Vec2& o) { os << "(" << o.x << ", " << o.y << ")"; return os; }
 };
@@ -67,5 +74,7 @@ struct Vec3 {
 
     friend std::ostream& operator<<(std::ostream& os, const Vec3& o) { os << "(" << o.x << ", " << o.y << ", " << o.z << ")"; return os; }
 };
+
+
 
 #endif

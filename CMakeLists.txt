@@ -19,6 +19,7 @@ set(HEADERS
     src/collision.h
     src/core.h
     src/body.h
+    src/testEnv.h
 )
 
 include_directories(SDL2/include)

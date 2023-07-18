@@ -15,74 +15,6 @@ std::vector<Body>& boardphase(Environment& env) {
     return env.getBodiesMut();
 }
 
-// SAT helper: Get the min & max vertex from a shape projected onto an axis
-std::pair<double, double> getMinMax(const Body& body, const Vec2& axis) {
-    // Axis must be normal
-    assert(axis.isNorm());
-
-    auto min = std::numeric_limits<double>::max();
-    auto max = std::numeric_limits<double>::min();
-
-    // Iteratively find min & max
-    for (const Vec2& point : body.getPoints())  
-    {
-        Vec2 p = body.getPos() + point;
-        double v = p * axis;
-        
-        if (v < min) min = v;
-        if (v > max) max = v;
-    }
-    return std::make_pair(min, max);
-}
-
-// SAT collision detection
-std::optional<Collision> detect(const Body& b1, const Body& b2) {
-
-    // Find normals
-    std::vector<Vec2> norms;
-    {
-        // TODO: TEMP: assume AABB
-        norms.push_back(Vec2(0, 1)); 
-        norms.push_back(Vec2(1, 0)); 
-    }
-
-    // For each normal
-    for (const Vec2& axis: norms) 
-    {
-        // Get min & max projection
-        auto [min1, max1] = getMinMax(b1, axis);
-        auto [min2, max2] = getMinMax(b2, axis);
-
-        // If no overlap 
-        if (max1 < min2 || max2 < min1) 
-            return std::nullopt;
-    }
-
-    // No axis possible, find collision 
-    // TODO: Assumes AABB
-    double depth;
-    Vec2 norm{0,0};
-    Vec2 rel = b2.getPos() - b1.getPos();
-    double xOverlap = (b1.getSize().x + b2.getSize().x)/2 - abs(rel.x);
-    double yOverlap = (b1.getSize().y + b2.getSize().y)/2 - abs(rel.y);
-
-    if (xOverlap > 0 && xOverlap < yOverlap) 
-    {
-        depth = xOverlap;
-        if (rel.x > 0) norm = Vec2( 1, 0);
-        else           norm = Vec2(-1, 0);
-    } 
-    else 
-    {
-        depth = yOverlap;
-        if (rel.y > 0) norm = Vec2(0, 1);
-        else           norm = Vec2(0,-1);
-    }
-
-    norm.normalize();
-    return std::make_optional(Collision{norm, depth});
-}
-
 // Given two vectors, find a normalized vector orthogonal to v1, in the direction of v2.
 Vec2 orthogonalTowards(const Vec2& _v1, const Vec2& _v2) {
 
@@ -108,7 +40,8 @@ double distOfFace(const Vec2& v1, const Vec2& v2) {
 
 // Calculates the support point of a polygon for a given direction.
 // -> Iteratively search for vertex with the max projection onto the given direction.
-Vec2 support (const std::vector<Vec2>& p, const Vec2& d) {
+Vec2 support (const Body& b, const Vec2& d) {
+    const auto& p = b.getPointsLocal();
 
     int out = 0;
     int best = 0;
@@ -123,8 +56,8 @@ Vec2 support (const std::vector<Vec2>& p, const Vec2& d) {
 // Calculates the support point for the Minkowski difference between two bodies.
 // -> Subtract the support points from the two bodies.
 Vec2 CSOsupport (const Body& b1, const Body& b2, const Vec2& d) {
-    auto s1 = support(b1.getPoints(),  d);
-    auto s2 = support(b2.getPoints(), -d);
+    auto s1 = support(b1,  d);
+    auto s2 = support(b2, -d);
 
     return (b1.getPos() + s1) - (b2.getPos() + s2);
 }
