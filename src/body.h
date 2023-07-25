@@ -16,6 +16,8 @@ class Body
 
     double mass;
     double invMass;
+    double intertia;
+    double invInertia;
 
     std::vector<Vec2> points;
 
@@ -31,10 +33,13 @@ class Body
 
 public: 
     SDL_Color color {0,0,0}; 
+    std::vector<Vec2> debugPoints;
 
-     Body(double x, double y, std::vector<Vec2> points, double mass) : 
+     Body(double x, double y, std::vector<Vec2> points, double mass, double intertia) : 
          mass(mass), 
          invMass(1 / mass),
+         intertia(intertia),
+         invInertia(1 / intertia),
          points(points), 
          pos(x, y)
     {    
@@ -59,8 +64,8 @@ public:
     double getAngAccl () const { return angAccl; }
 
     // Point getters, has transformation logic 
-    const std::vector<Vec2>& getPointsRaw    () const { return points; }
-    const std::vector<Vec2> getPointsLocal  () const { 
+    const std::vector<Vec2>& getPointsRaw  () const { return points; }
+    const std::vector<Vec2> getPointsLocal () const { 
         auto v = points;
         for (Vec2& p : v) 
             p = p.rotate(orient);
@@ -83,8 +88,8 @@ public:
     static void resolve(Body& b1, Body& b2, const Collision& collision); 
 
     // Convenience factories
-    static std::unique_ptr<Body> makeRect(double x, double y, double w, double h, double m);
-    static std::unique_ptr<Body> makeDiamond(double x, double y, double r, double m);
+    static std::unique_ptr<Body> makeRect(double x, double y, double w, double h, double m, double i);
+    static std::unique_ptr<Body> makeDiamond(double x, double y, double r, double m, double i);
 };
 
 #endif

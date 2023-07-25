@@ -1,6 +1,7 @@
 #include "core.h"
 #include "environment.h"
 #include "collision.h"
+#include "app.h"
 
 #include <limits>
 #include <utility>
@@ -82,19 +83,12 @@ std::tuple<int, double, Vec2, Vec2> findClosestEdge (const std::vector<Vec2>& pt
 }
 
 // GJK Collision detection
-std::optional<Collision> detectGJK(const Body& b1, const Body& b2) {
-    /*
-    {
-        std::cout << CSOsupport(b1, b2, Vec2(1,1)) << std::endl;
-        std::cout << CSOsupport(b1, b2, Vec2(-1,1)) << std::endl;
-        std::cout << CSOsupport(b1, b2, Vec2(-1,-1)) << std::endl;
-        std::cout << CSOsupport(b1, b2, Vec2(1,-1)) << std::endl;
-    }
-    */
+std::optional<Collision> detectCollision(const Body& b1, const Body& b2) {
+
     // Find Initial points. Use a random direction, then Op1.
     Vec2 d (0, 1);
     Vec2 p1 = CSOsupport(b1, b2, d);
-    d =  (-p1).normalize();
+    d = (-p1).normalize();
     Vec2 p2 = CSOsupport(b1, b2, d);
     Vec2 p3(0, 0);
 
@@ -133,7 +127,7 @@ std::optional<Collision> detectGJK(const Body& b1, const Body& b2) {
         }
     }
 
-    // TODO: EPA
+    // EPA
     // (a, b) := Find face closest to origin
     // d := orthoTowards(ab, aO)
     // p := Support(orthoTowards(ab, aO))
@@ -156,10 +150,10 @@ std::optional<Collision> detectGJK(const Body& b1, const Body& b2) {
         */
         
 
-        // TODO: Find Edge closest to Origin
+        // Find Edge closest to Origin
         const auto [index, dist, A, B] = findClosestEdge(pts);
         const Vec2 d = orthogonalTowards(A-B, A);
-        const Vec2 P = CSOsupport(b1, b2, d);
+        const Vec2 P = d * ( CSOsupport(b1, b2, d) * d );
 
         // Debug
         //std::cout << "Selected: " << A << ", " << B << "\tindex: " << index << "\tdist: " << dist << "\td : " << d << "\tP : " << P << std::endl;
@@ -167,11 +161,11 @@ std::optional<Collision> detectGJK(const Body& b1, const Body& b2) {
         // If support function returned a point no further from the origin
         // meaning the current edge is already the furthest edge from the origin
         // this is the closest edge on the polytope to the origin
-        // TODO: Check logic
-        // if ((P-A) * d < 0.001) 
-        if (P == A || P == B) {
+        if ((P-A) * d < 0.001) {
+        //if (P == A || P == B) {
             //std::cout << "RETURNED\td : " << d << "\tmin : " << dist << std::endl;
-            return Collision{d, dist};
+            //std::cout << "EPA Point: " << P << std::endl;
+            return Collision(d, dist);
         }
         
         pts.insert(pts.begin() + index+1, P);
@@ -179,26 +173,190 @@ std::optional<Collision> detectGJK(const Body& b1, const Body& b2) {
     assert(false);
 }
 
+
+struct Edge {
+    Vec2 e;
+    Vec2 n;
+    Vec2 v1;
+    Vec2 v2;
+    Edge (const Vec2& v1, const Vec2& v2) : e((v1-v2).normalize()), n(Vec2(e.y, -e.x).normalize()), v1(v1), v2(v2) {};
+};
+
+
+
+Edge findClippingEdge (const Body& b, const Vec2& norm) {
+    const auto& p = b.getPointsGlobal();
+
+    int out = 0;
+    int best = 0;
+    for (int i=0; i<p.size(); i++) 
+        if (norm * p[i] > best) {
+            best = norm * p[i];
+            out = i;
+        }
+    Vec2 v1 = p[out];
+    Edge e1 (v1, p[out ? out-1 : p.size()-1]);
+    Edge e2 (v1, p[out == p.size()-1 ? 0 : out+1]);
+    if (std::abs(e1.n * norm) > std::abs(e2.n * norm)) 
+        return e1;
+    else 
+        return e2;
+}
+
+
+int clip (Vec2 out[2], Vec2 a, Vec2 b, double o, Vec2 norm) {
+    double da = a * norm - o;
+    double db = b * norm - o;
+    int i = 0;
+
+    // DEBUG
+    /*
+    std::cout << "clipping seg\t" << a << ":" << da << ", " << b << ":" << db << "\tagainst plane " << o << "\t" << norm << std::endl;
+    */
+
+
+    // Past clipping plane
+    if (da >= 0) {
+        out[i++] = a;
+        //std::cout << "a past\n";
+    }
+    if (db >= 0) { 
+        out[i++] = b;
+        //std::cout << "b past\n";
+    }
+
+    // Opposing sides of plane
+    if (da * db < 0) 
+    {
+        //std::cout << "opposing sides. ";
+        //assert(i == 1);
+
+        double r = da / (da - db);
+        Vec2 v = (b - a) * r;
+        out[i++] = v + a;
+
+        //std::cout << "interpolated to:\t" << out[i-1] << std::endl;
+    }
+
+    // Both behind
+    else if (da < 0 && db < 0) 
+    {
+        //std::cout << "both behind. ";
+        double r = da / (da - db);
+        Vec2 v = (b - a) * -r;
+        out[i++] = v + a;
+        out[i++] = v + a;
+
+        //std::cout << "interpolated to:\t" << out[i-1] << std::endl;
+    }
+    assert(i == 2);
+    return i;
+}
+
+
+Collision findContactPoints (const Body& b1, const Body& b2, Collision& col) {
+
+    // Get Edges
+    const Edge e1 = findClippingEdge(b1, col.norm);
+    const Edge e2 = findClippingEdge(b2,-col.norm);
+
+    debugPoints.push_back(std::make_pair(e1.v1, Blue));
+    debugPoints.push_back(std::make_pair(e1.v2, Blue));
+    debugPoints.push_back(std::make_pair(e2.v1, Blue));
+    debugPoints.push_back(std::make_pair(e2.v2, Blue));
+
+    // Identify Reference & Incident Edge 
+    Edge ref = e2;
+    Vec2 inc[] = { e1.v1, e1.v2 };
+    Vec2 norm = orthogonalTowards(ref.e, col.norm);
+
+    // if e1.norm is more parallel to norm. ref -> e1
+    if (std::abs(e1.n * col.norm) > std::abs(e2.n * col.norm)) {
+        ref = e1;
+        norm = orthogonalTowards(ref.e,-col.norm);
+        inc[0] = e2.v1;
+        inc[1] = e2.v2;
+    }
+    // DEBUG
+    /*
+    std::cout << "ref: " << ref.v1 << ", " << ref.v2 << std::endl;
+    std::cout << "inc: " << inc[0] << ", " << inc[1] << std::endl;
+    */
+
+    // Adjacent Clip 
+    // v1 -- v2
+    if (ref.v1 * ref.n < ref.v2 * ref.n) 
+    {
+        clip(inc, inc[0], inc[1], ref.v1 * ref.e, ref.e);
+        clip(inc, inc[0], inc[1], ref.v2 *-ref.e,-ref.e);
+    }
+    // v2 -- v1
+    else 
+    {
+        clip(inc, inc[0], inc[1], ref.v1 *-ref.e,-ref.e);
+        clip(inc, inc[0], inc[1], ref.v2 * ref.e, ref.e);
+    }
+
+    // Normal Clip
+    clip(inc, inc[0], inc[1], ref.v1 * norm, norm);
+
+
+    debugPoints.push_back(std::make_pair(inc[0], Green));
+    debugPoints.push_back(std::make_pair(inc[1], Green));
+
+
+    col.contactPoint = inc[0];
+    return col;
+}
+
+
 // Resolve a collision between two bodies.
 // -> Impulse resolution
 void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
+
+    const Vec2& n = collision.norm;
+
+    // Calculate Radius
+    const Vec2 r1(0,0); //n * (support(b1,  n) * n);
+    const Vec2 r2(0,0); //n * (support(b2, -n) * n);
+
     // Find projected relative Velocity
-    Vec2 vR = b1.velo - b2.velo;
-    double vRP = vR * collision.norm;
+    const Vec2 vR = (b1.velo + r1 * b1.angVelo) - (b2.velo + r2 * b2.angVelo);
+    const double vRP = vR * n;
+
 
     // If the velocities are separating, don't resolve
     if (vRP < 0) 
         return;
 
-    double e = 1 + 0.1;
+    const double e = 1 + 0.1;
 
     // Calculate impulse (I DON'T GET THIS)
-    double J = e * vRP / (b1.invMass + b2.invMass);
-    Vec2 impulse = collision.norm * J;
+    double J;
+    if (n.norm() == r1.norm()) 
+    {
+        J = e * vRP / ( b1.invMass + b2.invMass);
+    }
+    else 
+    {
+        const double b1IntertiaFactor = 0;// orthogonalTowards(r1, n) * n * b1.invInertia;
+        const double b2IntertiaFactor = 0;// orthogonalTowards(r2, n) * n * b2.invInertia;
+        J = e * vRP / ( b1.invMass + b2.invMass + b1IntertiaFactor + b2IntertiaFactor );
+    } 
+
+    
+    const Vec2 impulse = n * J;
     
     // Apply Impulse
     b1.velo = b1.velo - impulse * b1.invMass;
     b2.velo = b2.velo + impulse * b2.invMass;
+
+    /*
+    if (!(n.norm() == r1.norm())) {
+        b1.angVelo += b1.invInertia * (-orthogonalTowards(r1, n).norm() * impulse);
+        b2.angVelo += b2.invInertia * ( orthogonalTowards(r2, n).norm() * impulse);
+    }
+    */
 
     
     // (Sink Prevention) Positional Correction, Linear Projection
@@ -223,9 +381,9 @@ void Environment::collide() {
         for (int j=i+1; j<bodyList.size(); j++) 
         {
             // Check for collision
-            std::optional<Collision> opt = detectGJK(bodyList[i], bodyList[j]);
+            std::optional<Collision> opt = detectCollision(bodyList[i], bodyList[j]);
             if (!opt) continue;
-            auto collision = *opt;
+            auto collision = findContactPoints(bodyList[i], bodyList[j], *opt);
 
             // Resolve collision
             // DEBUG: Set color to red 

@@ -35,27 +35,27 @@ void Body::runControllers(const Application &app) {
 }
 
 // Convenience Factory function
-std::unique_ptr<Body> Body::makeRect(double x, double y, double w, double h, double m) {
+std::unique_ptr<Body> Body::makeRect(double x, double y, double w, double h, double m, double i) {
     std::vector<Vec2> v{
         Vec2(-w/2, -h/2),
         Vec2( w/2, -h/2),
         Vec2( w/2,  h/2),
         Vec2(-w/2,  h/2),
     };
-    std::unique_ptr<Body> ptr( new Body(x, y, v, m) );
+    std::unique_ptr<Body> ptr( new Body(x, y, v, m, i) );
 
     return ptr;
 }
 
 // Convenience Factory function
-std::unique_ptr<Body> Body::makeDiamond(double x, double y, double r, double m) {
+std::unique_ptr<Body> Body::makeDiamond(double x, double y, double r, double m, double i) {
     std::vector<Vec2> v{
         Vec2( 0, -r),
         Vec2( r,  0),
         Vec2( 0,  r),
         Vec2(-r,  0),
     };
-    std::unique_ptr<Body> ptr( new Body(x, y, v, m) );
+    std::unique_ptr<Body> ptr( new Body(x, y, v, m, i) );
 
     return ptr;
 }

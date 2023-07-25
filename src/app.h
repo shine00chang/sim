@@ -7,6 +7,13 @@
 
 #include <set>
 
+enum Colors {
+    Red, 
+    Blue, 
+    Green,
+    Black
+};
+extern std::vector<std::pair<Vec2, Colors>> debugPoints;
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
