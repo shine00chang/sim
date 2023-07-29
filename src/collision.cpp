@@ -37,156 +37,6 @@ Vec2 orthogonalTowards(const Vec2& _v1, const Vec2& _v2) {
     return Vec2(o.x, o.y).normalize();
 }
 
-double distOfFace(const Vec2& v1, const Vec2& v2) {
-    return -v1 * orthogonalTowards(v1-v2, -v1);
-}
-
-// Calculates the support point of a polygon for a given direction.
-// -> Iteratively search for vertex with the max projection onto the given direction.
-Vec2 support (const Body& b, const Vec2& d) {
-    const auto& p = b.getPointsLocal();
-
-    int out = 0;
-    int best = 0;
-    for (int i=0; i<p.size(); i++) 
-        if (d * p[i] > best) {
-            best = d * p[i];
-            out = i;
-        }
-    return p[out];
-}
-
-// Calculates the support point for the Minkowski difference between two bodies.
-// -> Subtract the support points from the two bodies.
-Vec2 CSOsupport (const Body& b1, const Body& b2, const Vec2& d) {
-    auto s1 = support(b1,  d);
-    auto s2 = support(b2, -d);
-
-    return (b1.getPos() + s1) - (b2.getPos() + s2);
-}
-
-std::tuple<int, double, Vec2, Vec2> findClosestEdge (const std::vector<Vec2>& pts) {
-    double minDist = 0;
-    int min = 0;
-
-    for (int i=0; i<pts.size(); i++) {
-        const Vec2& a = pts[i == 0 ? pts.size() - 1 : i-1];
-        const Vec2& b = pts[i];
-
-        double dist = orthogonalTowards(a-b, a) * a;
-        if (i == 0 || dist < minDist) {
-            min = i;
-            minDist = dist;
-        }
-        //std::cout << "candidate: " << a << ", " << b << "\tdist: " << dist << std::endl;
-    }
-
-    return std::make_tuple(min-1, minDist, pts[min == 0 ? pts.size()-1 : min-1], pts[min]);
-}
-
-// GJK Collision detection
-std::optional<Collision> detectCollision(const Body& b1, const Body& b2) {
-
-    /*
-    std::cout << "points: \n";
-    for (auto i : b1.getPointsLocal()) 
-        std::cout << i << ", ";
-    std::cout << std::endl;
-    {
-        std::cout << CSOsupport(b1, b2, Vec2(0,0)) << std::endl;
-        std::cout << CSOsupport(b1, b2, Vec2(0,1)) << std::endl;
-        std::cout << CSOsupport(b1, b2, Vec2(1,1)) << std::endl;
-        std::cout << CSOsupport(b1, b2, Vec2(1,0)) << std::endl;
-    }
-    */
-
-    // Find Initial points. Use a random direction, then Op1.
-    Vec2 d (0, 1);
-    Vec2 p1 = CSOsupport(b1, b2, d);
-    d = (-p1).normalize();
-    Vec2 p2 = CSOsupport(b1, b2, d);
-    Vec2 p3(0, 0);
-
-    //std::cout << "initial: " << p1 << ", " << p2 << std::endl; 
-
-    while (1) {
-        // Find third point.
-        const Vec2 edge = p2 - p1;
-        if (edge.norm() == p1.norm() || edge.norm() == -p1.norm()) {
-            d = Vec2(-edge.y, edge.x); 
-        } else {
-            d = orthogonalTowards(edge, -p1); 
-        }
-
-        p3 = CSOsupport(b1, b2, d);
-
-        //std::cout << "d: " << d << "\tp3: " << p3 << std::endl; 
-
-        // If p3 does not pass the origin, the simplex can never include the origin.
-        if (p3 * d < 0) {
-            return std::nullopt;
-        }
-
-        // If origin is in the direction of face p1, p3, drop p2.
-        if (-p3 * orthogonalTowards(p3-p1, p1-p2) > 0) {
-            //std::cout << "kept p1\n";
-            p2 = p3;
-        }
-        // If origin is in the direction of face p2, p3, drop p1.
-        if (-p3 * orthogonalTowards(p3-p2, p2-p1) > 0) {
-            //std::cout << "kept p2\n";
-            p1 = p3;
-        }
-        // Otherwise, origin is within simplex, break & continue to EPA
-        else {
-            break;
-        }
-    }
-
-    // EPA
-    // (a, b) := Find face closest to origin
-    // d := orthoTowards(ab, aO)
-    // p := Support(orthoTowards(ab, aO))
-    // if p is new => Insert P into polytope
-    // if p is already in polytope => {
-    //   norm := d
-    //   depth: || closet point ||
-    // }
-
-    std::vector<Vec2> pts {p1, p2, p3};
-
-    int i = 0;
-    while (i++ < 10) {
-
-        /*
-        std::cout << "Polytope: ";
-        for (auto& v : pts) 
-            std::cout << v << ", ";
-        std::cout << "\n";
-        */
-        
-
-        // Find Edge closest to Origin
-        const auto [index, dist, A, B] = findClosestEdge(pts);
-        const Vec2 d = orthogonalTowards(A-B, A);
-        const Vec2 P = d * ( CSOsupport(b1, b2, d) * d );
-
-        // Debug
-        //std::cout << "Selected: " << A << ", " << B << "\tindex: " << index << "\tdist: " << dist << "\td : " << d << "\tP : " << P << std::endl;
-
-        // If support function returned a point no further from the origin
-        // meaning the current edge is already the furthest edge from the origin
-        // this is the closest edge on the polytope to the origin
-        if ((P-A) * d < 0.001) {
-        //if (P == A || P == B) {
-            //std::cout << "RETURNED\td : " << d << "\tmin : " << dist << "EPA Point: " << P << std::endl;
-            return Collision(d, dist);
-        }
-        
-        pts.insert(pts.begin() + index+1, P);
-    }
-    assert(false);
-}
 
 
 std::pair<double, double> getMinMax(const Body& body, const Vec2& axis) {
@@ -220,7 +70,7 @@ std::optional<std::pair<double, Vec2>> detectCollisionSAT(const Body& b1, const 
             norms.push_back(Vec2(-e.y, e.x));
         }
     }{
-        const auto& v = b1.getPointsLocal();
+        const auto& v = b2.getPointsLocal();
         for (int i=0; i<v.size(); i++) {
             Vec2 e = (v[i] - v[i == 0 ? v.size()-1 : i-1]).normalize();
             norms.push_back(Vec2(-e.y, e.x));
@@ -247,7 +97,7 @@ std::optional<std::pair<double, Vec2>> detectCollisionSAT(const Body& b1, const 
         // Check overlap to find MTV
         {
             double o = max1-min2;
-            std::cout << "bounds: \t[" << max1 << ",  " << min1 << "]\t[" << max2 << ",  " << min2 << "]\toverlap: " << o << std::endl;
+            std::cout << "axis: " << axis << "\t[" << max1 << ",  " << min1 << "]\t[" << max2 << ",  " << min2 << "]\toverlap: " << o << std::endl;
             if (std::isnan(overlap) ||  o < overlap) {
                 std::cout << "min: " << o << std::endl;
                 overlap = o;
