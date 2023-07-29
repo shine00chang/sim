@@ -9,6 +9,7 @@ struct Collision {
     Vec2 contactPoint;
 
     Collision (const Vec2& norm, double depth) : norm(norm), depth(depth), contactPoint(Vec2(0,0)) {};
+    Collision (const Vec2& norm, double depth, const Vec2& contactP) : norm(norm), depth(depth), contactPoint(contactP) {};
 };
 
 #endif

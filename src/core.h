@@ -19,7 +19,7 @@ struct Vec2 {
     inline bool   operator ==(const Vec2& o)  const { return std::fabs(x - o.x) < EPSILON && std::fabs(y - o.y) < EPSILON; }
 
     inline double mag () const { return std::sqrt(x*x + y*y); }
-    inline bool isNorm () const { return x * x + y * y == 1; };
+    inline bool isNorm () const { return std::fabs(x * x + y * y - 1) < EPSILON; };
     Vec2 norm () const {
         double m = mag();
         return Vec2(x / m, y / m);
@@ -59,7 +59,7 @@ struct Vec3 {
         );
     }
 
-    inline bool isNorm () const { return x * x + y * y + z * z == 1; };
+    inline bool isNorm () const { return std::fabs( x * x + y * y + z * z - 1) < EPSILON; };
     Vec3 norm () const {
         double m = mag();
         return Vec3(

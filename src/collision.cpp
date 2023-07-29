@@ -3,6 +3,7 @@
 #include "collision.h"
 #include "app.h"
 
+#include <cmath>
 #include <limits>
 #include <utility>
 #include <vector>
@@ -188,6 +189,77 @@ std::optional<Collision> detectCollision(const Body& b1, const Body& b2) {
 }
 
 
+std::pair<double, double> getMinMax(const Body& body, const Vec2& axis) {
+    if (!axis.isNorm()) {
+        std::cout << axis << std::endl;
+        assert(false);
+    }
+
+    auto min = std::nan("0");
+    auto max = std::nan("0");
+
+    for (const Vec2& p : body.getPointsGlobal())
+    {
+        double v = p * axis;
+
+        if (std::isnan(min) || v < min) min = v;
+        if (std::isnan(max) || v > max) max = v;
+    }
+    return std::make_pair(min, max);
+}
+
+
+std::optional<std::pair<double, Vec2>> detectCollisionSAT(const Body& b1, const Body& b2) {
+
+    // Find normals
+    std::vector<Vec2> norms;
+    {
+        const auto& v = b1.getPointsLocal();
+        for (int i=0; i<v.size(); i++) {
+            Vec2 e = (v[i] - v[i == 0 ? v.size()-1 : i-1]).normalize();
+            norms.push_back(Vec2(-e.y, e.x));
+        }
+    }{
+        const auto& v = b1.getPointsLocal();
+        for (int i=0; i<v.size(); i++) {
+            Vec2 e = (v[i] - v[i == 0 ? v.size()-1 : i-1]).normalize();
+            norms.push_back(Vec2(-e.y, e.x));
+        }
+    }
+
+
+    double overlap = std::nan("0");
+    Vec2 separationNorm(norms[0]);
+    // For each normal
+    for (const Vec2& axis: norms)
+    {
+        // Get min & max projection
+        auto [min1, max1] = getMinMax(b1, axis);
+        auto [min2, max2] = getMinMax(b2, axis);
+
+        // If no overlap
+        if (max1 < min2 || max2 < min1) 
+        {
+            std::cout << "no overlap\n";
+            return std::nullopt;
+        }
+        else 
+        // Check overlap to find MTV
+        {
+            double o = max1-min2;
+            std::cout << "bounds: \t[" << max1 << ",  " << min1 << "]\t[" << max2 << ",  " << min2 << "]\toverlap: " << o << std::endl;
+            if (std::isnan(overlap) ||  o < overlap) {
+                std::cout << "min: " << o << std::endl;
+                overlap = o;
+                separationNorm = axis;
+            }
+        }
+    }
+
+    return std::make_optional(std::make_pair(overlap, separationNorm));
+}
+
+
 struct Edge {
     Vec2 e;
     Vec2 n;
@@ -267,11 +339,11 @@ int clip (Vec2 out[2], Vec2 a, Vec2 b, double o, Vec2 norm) {
 }
 
 
-Collision findContactPoints (const Body& b1, const Body& b2, Collision& col) {
+Vec2 findContactPoints (const Body& b1, const Body& b2, const Vec2& separationAxis) {
 
     // Get Edges
-    const Edge e1 = findClippingEdge(b1, col.norm);
-    const Edge e2 = findClippingEdge(b2,-col.norm);
+    const Edge e1 = findClippingEdge(b1, separationAxis);
+    const Edge e2 = findClippingEdge(b2,-separationAxis);
 
     debugPoints.push_back(std::make_pair(e1.v1, Blue));
     debugPoints.push_back(std::make_pair(e1.v2, Blue));
@@ -281,17 +353,17 @@ Collision findContactPoints (const Body& b1, const Body& b2, Collision& col) {
     // Identify Reference & Incident Edge 
     Edge ref = e2;
     Vec2 inc[] = { e1.v1, e1.v2 };
-    Vec2 norm = orthogonalTowards(ref.e, col.norm);
+    Vec2 norm = orthogonalTowards(ref.e, separationAxis);
 
     // if e1.norm is more parallel to norm. ref -> e1
-    if (std::abs(e1.n * col.norm) > std::abs(e2.n * col.norm)) {
+    if (std::abs(e1.n * separationAxis) > std::abs(e2.n * separationAxis)) {
         ref = e1;
-        norm = orthogonalTowards(ref.e,-col.norm);
+        norm = orthogonalTowards(ref.e,-separationAxis);
         inc[0] = e2.v1;
         inc[1] = e2.v2;
     }
     // DEBUG
-    std::cout << "norm: " << col.norm << std::endl;
+    std::cout << "norm: " << separationAxis << std::endl;
     std::cout << "ref:  " << ref.v1 << ", " << ref.v2 << std::endl;
     std::cout << "inc:  " << inc[0] << ", " << inc[1] << std::endl;
     
@@ -321,8 +393,7 @@ Collision findContactPoints (const Body& b1, const Body& b2, Collision& col) {
     debugPoints.push_back(std::make_pair(inc[1], Green));
 
 
-    col.contactPoint = inc[0];
-    return col;
+    return inc[0];
 }
 
 
@@ -401,9 +472,11 @@ void Environment::collide() {
         for (int j=i+1; j<bodyList.size(); j++) 
         {
             // Check for collision
-            std::optional<Collision> opt = detectCollision(bodyList[i], bodyList[j]);
+            auto opt = detectCollisionSAT(bodyList[i], bodyList[j]);
             if (!opt) continue;
-            auto collision = findContactPoints(bodyList[i], bodyList[j], *opt);
+            auto [overlap, separationAxis] = *opt;
+            auto contactP = findContactPoints(bodyList[i], bodyList[j], separationAxis);
+            Collision collision (separationAxis, overlap, contactP);
 
             // Resolve collision
             // DEBUG: Set color to red 
