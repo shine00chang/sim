@@ -38,16 +38,16 @@ public:
     static Environment testEnv1() {
         Environment env; 
 
-        auto r1 = Body::makeRect(300, 500, 50, 50, 10, 10);
-        auto r2 = Body::makeRect(300, 200, 50, 50, 10, 10);
-        r1->applyForce(Vec2{0, -4000});
+        auto r1 = Body::makeRect(340, 400, 50, 50, 10, 100);
+        auto r2 = Body::makeRect(300, 330, 50, 50, 10, 100);
+        r1->applyForce(Vec2{0, -8000});
 
-        auto floor = Body::makeRect(340, 0, 680, 50, 1e10, 10);
+        auto floor = Body::makeRect(340, 0, 680, 50, 1e10, 1e14);
         floor->setGravity(false);
 
         env.addBody(*r1.release());
         env.addBody(*r2.release());
-        env.addBody(*floor.release());
+        //env.addBody(*floor.release());
 
         return env;
     }

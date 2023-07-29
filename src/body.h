@@ -33,7 +33,6 @@ class Body
 
 public: 
     SDL_Color color {0,0,0}; 
-    std::vector<Vec2> debugPoints;
 
      Body(double x, double y, std::vector<Vec2> points, double mass, double intertia) : 
          mass(mass), 

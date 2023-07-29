@@ -34,8 +34,6 @@ void loop (Application app, Environment env)
             {
                 // DEBUG: Set color to red on collision: Reset
                 body.color = SDL_Color{0,0,0};
-                // DEBUG: Clear debug points
-                body.debugPoints.clear();
                 
                 // Controllers
                 body.runControllers(app);
@@ -69,7 +67,7 @@ int main( int argc, char* args[] )
         return 1;
     }
 
-    auto env = TestEnvironments::testEnv2();
+    auto env = TestEnvironments::testEnv1();
     loop(*app, env);
 
     return 0;

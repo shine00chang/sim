@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cmath>
 
+#define EPSILON 0.00001
+
 struct Vec2 {
     double x, y;
 
@@ -14,7 +16,7 @@ struct Vec2 {
     inline Vec2   operator - (const Vec2& o)  const { return Vec2 (x-o.x, y-o.y); }
     inline Vec2   operator * (const double o) const { return Vec2 (x*o, y*o); }
     inline double operator * (const Vec2& o)  const { return x*o.x + y*o.y; }
-    inline bool   operator ==(const Vec2& o)  const { return x == o.x && y == o.y; }
+    inline bool   operator ==(const Vec2& o)  const { return std::fabs(x - o.x) < EPSILON && std::fabs(y - o.y) < EPSILON; }
 
     inline double mag () const { return std::sqrt(x*x + y*y); }
     inline bool isNorm () const { return x * x + y * y == 1; };

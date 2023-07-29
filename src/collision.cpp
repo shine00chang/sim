@@ -29,6 +29,7 @@ Vec2 orthogonalTowards(const Vec2& _v1, const Vec2& _v2) {
 
     Vec3 o = v1 ^ v2 ^ v1;
     if (o.z != 0) {
+        std::cout << "Error :" << v1 << ", " << v2 << "\tout: " << o << std::endl;
         assert(false);
     }
 
@@ -85,6 +86,19 @@ std::tuple<int, double, Vec2, Vec2> findClosestEdge (const std::vector<Vec2>& pt
 // GJK Collision detection
 std::optional<Collision> detectCollision(const Body& b1, const Body& b2) {
 
+    /*
+    std::cout << "points: \n";
+    for (auto i : b1.getPointsLocal()) 
+        std::cout << i << ", ";
+    std::cout << std::endl;
+    {
+        std::cout << CSOsupport(b1, b2, Vec2(0,0)) << std::endl;
+        std::cout << CSOsupport(b1, b2, Vec2(0,1)) << std::endl;
+        std::cout << CSOsupport(b1, b2, Vec2(1,1)) << std::endl;
+        std::cout << CSOsupport(b1, b2, Vec2(1,0)) << std::endl;
+    }
+    */
+
     // Find Initial points. Use a random direction, then Op1.
     Vec2 d (0, 1);
     Vec2 p1 = CSOsupport(b1, b2, d);
@@ -99,8 +113,9 @@ std::optional<Collision> detectCollision(const Body& b1, const Body& b2) {
         const Vec2 edge = p2 - p1;
         if (edge.norm() == p1.norm() || edge.norm() == -p1.norm()) {
             d = Vec2(-edge.y, edge.x); 
-        } else 
+        } else {
             d = orthogonalTowards(edge, -p1); 
+        }
 
         p3 = CSOsupport(b1, b2, d);
 
@@ -163,8 +178,7 @@ std::optional<Collision> detectCollision(const Body& b1, const Body& b2) {
         // this is the closest edge on the polytope to the origin
         if ((P-A) * d < 0.001) {
         //if (P == A || P == B) {
-            //std::cout << "RETURNED\td : " << d << "\tmin : " << dist << std::endl;
-            //std::cout << "EPA Point: " << P << std::endl;
+            //std::cout << "RETURNED\td : " << d << "\tmin : " << dist << "EPA Point: " << P << std::endl;
             return Collision(d, dist);
         }
         
@@ -210,9 +224,8 @@ int clip (Vec2 out[2], Vec2 a, Vec2 b, double o, Vec2 norm) {
     int i = 0;
 
     // DEBUG
-    /*
-    std::cout << "clipping seg\t" << a << ":" << da << ", " << b << ":" << db << "\tagainst plane " << o << "\t" << norm << std::endl;
-    */
+    // std::cout << "clipping seg\t" << a << ":" << da << ", " << b << ":" << db << "\tagainst plane " << o << "\t" << norm << std::endl;
+    
 
 
     // Past clipping plane
@@ -228,26 +241,26 @@ int clip (Vec2 out[2], Vec2 a, Vec2 b, double o, Vec2 norm) {
     // Opposing sides of plane
     if (da * db < 0) 
     {
-        //std::cout << "opposing sides. ";
-        //assert(i == 1);
+        // std::cout << "opposing sides. ";
+        // assert(i == 1);
 
         double r = da / (da - db);
         Vec2 v = (b - a) * r;
         out[i++] = v + a;
 
-        //std::cout << "interpolated to:\t" << out[i-1] << std::endl;
+        // std::cout << "interpolated to:\t" << out[i-1] << std::endl;
     }
 
     // Both behind
     else if (da < 0 && db < 0) 
     {
-        //std::cout << "both behind. ";
+        // std::cout << "both behind. ";
         double r = da / (da - db);
         Vec2 v = (b - a) * -r;
         out[i++] = v + a;
         out[i++] = v + a;
 
-        //std::cout << "interpolated to:\t" << out[i-1] << std::endl;
+        // std::cout << "interpolated to:\t" << out[i-1] << std::endl;
     }
     assert(i == 2);
     return i;
@@ -278,14 +291,15 @@ Collision findContactPoints (const Body& b1, const Body& b2, Collision& col) {
         inc[1] = e2.v2;
     }
     // DEBUG
-    /*
-    std::cout << "ref: " << ref.v1 << ", " << ref.v2 << std::endl;
-    std::cout << "inc: " << inc[0] << ", " << inc[1] << std::endl;
-    */
+    std::cout << "norm: " << col.norm << std::endl;
+    std::cout << "ref:  " << ref.v1 << ", " << ref.v2 << std::endl;
+    std::cout << "inc:  " << inc[0] << ", " << inc[1] << std::endl;
+    
+
 
     // Adjacent Clip 
     // v1 -- v2
-    if (ref.v1 * ref.n < ref.v2 * ref.n) 
+    if (ref.v1 * ref.e < ref.v2 * ref.e) 
     {
         clip(inc, inc[0], inc[1], ref.v1 * ref.e, ref.e);
         clip(inc, inc[0], inc[1], ref.v2 *-ref.e,-ref.e);
@@ -296,9 +310,11 @@ Collision findContactPoints (const Body& b1, const Body& b2, Collision& col) {
         clip(inc, inc[0], inc[1], ref.v1 *-ref.e,-ref.e);
         clip(inc, inc[0], inc[1], ref.v2 * ref.e, ref.e);
     }
+    std::cout << inc[0] << inc[1] << std::endl;
 
     // Normal Clip
     clip(inc, inc[0], inc[1], ref.v1 * norm, norm);
+    std::cout << inc[0] << inc[1] << std::endl;
 
 
     debugPoints.push_back(std::make_pair(inc[0], Green));
@@ -315,10 +331,13 @@ Collision findContactPoints (const Body& b1, const Body& b2, Collision& col) {
 void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
 
     const Vec2& n = collision.norm;
+    const Vec2& p = collision.contactPoint;
+    debugPoints.push_back(std::make_pair(p, Red));
 
     // Calculate Radius
-    const Vec2 r1(0,0); //n * (support(b1,  n) * n);
-    const Vec2 r2(0,0); //n * (support(b2, -n) * n);
+    const Vec2 r1 = p - b1.getPos();
+    const Vec2 r2 = p - b2.getPos();
+    std::cout << "n:\t" << n << "  p:\t" << p << "  r:\t" << r1 << ", " << r2 << std::endl;
 
     // Find projected relative Velocity
     const Vec2 vR = (b1.velo + r1 * b1.angVelo) - (b2.velo + r2 * b2.angVelo);
@@ -333,14 +352,17 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
 
     // Calculate impulse (I DON'T GET THIS)
     double J;
-    if (n.norm() == r1.norm()) 
+    if (n.norm() == r1.norm() || -n.norm() == r2.norm()) 
     {
         J = e * vRP / ( b1.invMass + b2.invMass);
     }
     else 
     {
-        const double b1IntertiaFactor = 0;// orthogonalTowards(r1, n) * n * b1.invInertia;
-        const double b2IntertiaFactor = 0;// orthogonalTowards(r2, n) * n * b2.invInertia;
+        std::cout << "Inertial factors\n";
+        const double b1IntertiaFactor = orthogonalTowards(r1, n) * n * b1.invInertia;
+        const double b2IntertiaFactor = orthogonalTowards(r2, n) * n * b2.invInertia;
+
+        std::cout << "Intertial F's: " << b1IntertiaFactor << " " << b2IntertiaFactor << std::endl;
         J = e * vRP / ( b1.invMass + b2.invMass + b1IntertiaFactor + b2IntertiaFactor );
     } 
 
@@ -351,12 +373,10 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
     b1.velo = b1.velo - impulse * b1.invMass;
     b2.velo = b2.velo + impulse * b2.invMass;
 
-    /*
     if (!(n.norm() == r1.norm())) {
-        b1.angVelo += b1.invInertia * (-orthogonalTowards(r1, n).norm() * impulse);
-        b2.angVelo += b2.invInertia * ( orthogonalTowards(r2, n).norm() * impulse);
+        b1.angVelo += b1.invInertia * (-orthogonalTowards(r1, n) * impulse);
+        b2.angVelo += b2.invInertia * (-orthogonalTowards(r2, n) * impulse);
     }
-    */
 
     
     // (Sink Prevention) Positional Correction, Linear Projection
@@ -387,8 +407,8 @@ void Environment::collide() {
 
             // Resolve collision
             // DEBUG: Set color to red 
-            bodyList[i].color = SDL_Color{255,0,0};
-            bodyList[j].color = SDL_Color{255,0,0};
+            bodyList[i].color = SDL_Color{100,100,100};
+            bodyList[j].color = SDL_Color{100,100,100};
 
             Body::resolve(bodyList[i], bodyList[j], collision);
         }
