@@ -201,6 +201,30 @@ src/collision.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/collision.cpp.s
 .PHONY : src/collision.cpp.s
 
+src/effects.o: src/effects.cpp.o
+.PHONY : src/effects.o
+
+# target to build an object file
+src/effects.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/effects.cpp.o
+.PHONY : src/effects.cpp.o
+
+src/effects.i: src/effects.cpp.i
+.PHONY : src/effects.i
+
+# target to preprocess a source file
+src/effects.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/effects.cpp.i
+.PHONY : src/effects.cpp.i
+
+src/effects.s: src/effects.cpp.s
+.PHONY : src/effects.s
+
+# target to generate assembly for a file
+src/effects.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/effects.cpp.s
+.PHONY : src/effects.cpp.s
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -225,29 +249,29 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
-src/renderer.o: src/renderer.cpp.o
-.PHONY : src/renderer.o
+src/view.o: src/view.cpp.o
+.PHONY : src/view.o
 
 # target to build an object file
-src/renderer.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/renderer.cpp.o
-.PHONY : src/renderer.cpp.o
+src/view.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/view.cpp.o
+.PHONY : src/view.cpp.o
 
-src/renderer.i: src/renderer.cpp.i
-.PHONY : src/renderer.i
+src/view.i: src/view.cpp.i
+.PHONY : src/view.i
 
 # target to preprocess a source file
-src/renderer.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/renderer.cpp.i
-.PHONY : src/renderer.cpp.i
+src/view.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/view.cpp.i
+.PHONY : src/view.cpp.i
 
-src/renderer.s: src/renderer.cpp.s
-.PHONY : src/renderer.s
+src/view.s: src/view.cpp.s
+.PHONY : src/view.s
 
 # target to generate assembly for a file
-src/renderer.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/renderer.cpp.s
-.PHONY : src/renderer.cpp.s
+src/view.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/view.cpp.s
+.PHONY : src/view.cpp.s
 
 # Help Target
 help:
@@ -267,12 +291,15 @@ help:
 	@echo "... src/collision.o"
 	@echo "... src/collision.i"
 	@echo "... src/collision.s"
+	@echo "... src/effects.o"
+	@echo "... src/effects.i"
+	@echo "... src/effects.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
-	@echo "... src/renderer.o"
-	@echo "... src/renderer.i"
-	@echo "... src/renderer.s"
+	@echo "... src/view.o"
+	@echo "... src/view.i"
+	@echo "... src/view.s"
 .PHONY : help
 
 

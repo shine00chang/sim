@@ -8,8 +8,9 @@ set(SOURCES
     src/main.cpp
     src/app.cpp
     src/collision.cpp
-    src/renderer.cpp
     src/body.cpp
+    src/view.cpp
+    src/effects.cpp
 )
 
 # Add your header files
@@ -20,6 +21,7 @@ set(HEADERS
     src/core.h
     src/body.h
     src/testEnv.h
+    src/view.h
 )
 
 include_directories(SDL2/include)

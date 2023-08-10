@@ -4,16 +4,10 @@
 #include "SDL.h"
 #include "SDL_keycode.h"
 #include "environment.h"
+#include "view.h"
 
 #include <set>
 
-enum Colors {
-    Red, 
-    Blue, 
-    Green,
-    Black
-};
-extern std::vector<std::pair<Vec2, Colors>> debugPoints;
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -28,7 +22,7 @@ public:
      Application();
     ~Application();
 
-    void render(const Environment& env);
+    inline void render (View& view, const Environment& env) { view.render(m_renderer, env); }; 
     void updateEvents ();
 
     bool isPressed (SDL_Keycode k) const { return m_keys.count(k); }

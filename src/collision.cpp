@@ -2,6 +2,7 @@
 #include "environment.h"
 #include "collision.h"
 #include "app.h"
+#include "view.h"
 
 #include <cmath>
 #include <limits>
@@ -9,6 +10,7 @@
 #include <vector>
 #include <list>
 #include <optional>
+#include <memory>
 
 
 // Boardphase
@@ -195,10 +197,10 @@ Vec2 findContactPoints (const Body& b1, const Body& b2, const Vec2& separationAx
     const Edge e1 = findClippingEdge(b1, separationAxis);
     const Edge e2 = findClippingEdge(b2,-separationAxis);
 
-    debugPoints.push_back(std::make_pair(e1.v1, Blue));
-    debugPoints.push_back(std::make_pair(e1.v2, Blue));
-    debugPoints.push_back(std::make_pair(e2.v1, Blue));
-    debugPoints.push_back(std::make_pair(e2.v2, Blue));
+    injectDebugEffect(std::make_shared<PointEffect>(e1.v1, Blue));
+    injectDebugEffect(std::make_shared<PointEffect>(e1.v2, Blue));
+    injectDebugEffect(std::make_shared<PointEffect>(e2.v1, Blue));
+    injectDebugEffect(std::make_shared<PointEffect>(e2.v2, Blue));
 
     // Identify Reference & Incident Edge 
     Edge ref = e2;
@@ -238,10 +240,8 @@ Vec2 findContactPoints (const Body& b1, const Body& b2, const Vec2& separationAx
     // Normal Clip
     clip(inc, inc[0], inc[1], ref.v1 * norm, norm);
 
-
-    debugPoints.push_back(std::make_pair(inc[0], Green));
-    debugPoints.push_back(std::make_pair(inc[1], Green));
-
+    injectDebugEffect(std::make_shared<PointEffect>(inc[0], Green));
+    injectDebugEffect(std::make_shared<PointEffect>(inc[1], Green));
 
     return inc[0];
 }
@@ -253,7 +253,10 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
 
     const Vec2& n = collision.norm;
     const Vec2& p = collision.contactPoint;
-    debugPoints.push_back(std::make_pair(p, Red));
+
+    injectDebugEffect(std::make_shared<PointEffect>(p, Red));
+    injectDebugEffect(std::make_shared<VectorEffect>(p, n * 20, Red));
+
 
     // Calculate Radius
     const Vec2 r1 = p - b1.getPos();

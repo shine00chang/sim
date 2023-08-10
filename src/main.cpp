@@ -12,7 +12,7 @@
 #include <utility>
 
 
-void loop (Application app, Environment env) 
+void loop (Application app, View view, Environment env) 
 {
     constexpr double dt = 0.016;
     uint64_t prevIterMs = SDL_GetTicks64();
@@ -51,7 +51,7 @@ void loop (Application app, Environment env)
         env.collide();
 
         // Render
-        app.render(env);
+        app.render(view, env);
     }
 }
 
@@ -67,8 +67,9 @@ int main( int argc, char* args[] )
         return 1;
     }
 
-    auto env = TestEnvironments::testEnv1();
-    loop(*app, env);
+    View view = View();
+    Environment env = TestEnvironments::testEnv1();
+    loop(*app, view, env);
 
     return 0;
 }
