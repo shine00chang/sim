@@ -16,7 +16,7 @@ class Body
 
     double mass;
     double invMass;
-    double intertia;
+    double inertia;
     double invInertia;
 
     std::vector<Vec2> points;
@@ -34,19 +34,7 @@ class Body
 public: 
     SDL_Color color {0,0,0}; 
 
-     Body(double x, double y, std::vector<Vec2> points, double mass, double intertia) : 
-         mass(mass), 
-         invMass(1 / mass),
-         intertia(intertia),
-         invInertia(1 / intertia),
-         points(points), 
-         pos(x, y)
-    {    
-        // Must be a polygon
-        if (points.size() == 3) throw "Not a polygon";
-        invMass = 1 / mass;
-    };
-
+     Body(double x, double y, std::vector<Vec2> points, double mass);
     ~Body() {};
 
     void useController  (Controller controller) { m_controllers.push_back(controller); }
@@ -87,8 +75,8 @@ public:
     static void resolve(Body& b1, Body& b2, const Collision& collision); 
 
     // Convenience factories
-    static std::unique_ptr<Body> makeRect(double x, double y, double w, double h, double m, double i);
-    static std::unique_ptr<Body> makeDiamond(double x, double y, double r, double m, double i);
+    static std::unique_ptr<Body> makeRect(double x, double y, double w, double h, double m);
+    static std::unique_ptr<Body> makeDiamond(double x, double y, double r, double m);
 };
 
 #endif

@@ -38,16 +38,16 @@ public:
     static Environment testEnv1() {
         Environment env; 
 
-        auto r1 = Body::makeRect(340, 400, 50, 50, 10, 100);
-        auto r2 = Body::makeRect(300, 330, 50, 50, 10, 100);
-        r1->applyForce(Vec2{0, -8000});
+        auto r1 = Body::makeRect(340, 400, 50, 50, 10);
+        auto r2 = Body::makeRect(300, 330, 50, 50, 10);
+        r1->applyForce(Vec2{0, -20000});
 
-        auto floor = Body::makeRect(340, 0, 680, 50, 1e10, 1e14);
+        auto floor = Body::makeRect(340, 0, 680, 50, 1e10);
         floor->setGravity(false);
 
         env.addBody(*r1.release());
         env.addBody(*r2.release());
-        //env.addBody(*floor.release());
+        env.addBody(*floor.release());
 
         return env;
     }
@@ -59,8 +59,8 @@ public:
     static Environment testEnv2() {
         Environment env;
 
-        auto r1 = Body::makeRect(340, 300, 50, 50, 10, 10);
-        auto r2 = Body::makeRect(300, 200, 50, 50, 10, 10);
+        auto r1 = Body::makeRect(340, 300, 50, 50, 10);
+        auto r2 = Body::makeRect(300, 200, 50, 50, 10);
 
         r1->setGravity(false);
         r2->setGravity(false);
@@ -81,8 +81,8 @@ public:
     static Environment testEnv3() {
         Environment env;
 
-        auto r1 = Body::makeDiamond(300, 300, 50, 10, 10);
-        auto r2 = Body::makeRect(200, 200, 50, 50, 10, 10); 
+        auto r1 = Body::makeDiamond(300, 300, 50, 10);
+        auto r2 = Body::makeRect(200, 200, 50, 50, 10); 
 
         r1->setGravity(false);
         r2->setGravity(false);
@@ -101,8 +101,8 @@ public:
     static Environment testEnv4() {
         Environment env;
 
-        auto r1 = Body::makeRect(340, 300, 50, 50, 10, 10);
-        auto r2 = Body::makeRect(300, 200, 50, 50, 10, 10); 
+        auto r1 = Body::makeRect(340, 300, 50, 50, 10);
+        auto r2 = Body::makeRect(300, 200, 50, 50, 10); 
 
         r1->setGravity(false);
         r2->setGravity(false);

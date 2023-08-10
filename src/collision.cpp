@@ -90,16 +90,16 @@ std::optional<std::pair<double, Vec2>> detectCollisionSAT(const Body& b1, const 
         // If no overlap
         if (max1 < min2 || max2 < min1) 
         {
-            std::cout << "no overlap\n";
+            //std::cout << "no overlap\n";
             return std::nullopt;
         }
         else 
         // Check overlap to find MTV
         {
             double o = max1-min2;
-            std::cout << "axis: " << axis << "\t[" << max1 << ",  " << min1 << "]\t[" << max2 << ",  " << min2 << "]\toverlap: " << o << std::endl;
+            //std::cout << "axis: " << axis << "\t[" << max1 << ",  " << min1 << "]\t[" << max2 << ",  " << min2 << "]\toverlap: " << o << std::endl;
             if (std::isnan(overlap) ||  o < overlap) {
-                std::cout << "min: " << o << std::endl;
+                //std::cout << "min: " << o << std::endl;
                 overlap = o;
                 separationNorm = axis;
             }
@@ -213,9 +213,11 @@ Vec2 findContactPoints (const Body& b1, const Body& b2, const Vec2& separationAx
         inc[1] = e2.v2;
     }
     // DEBUG
+    /*
     std::cout << "norm: " << separationAxis << std::endl;
     std::cout << "ref:  " << ref.v1 << ", " << ref.v2 << std::endl;
     std::cout << "inc:  " << inc[0] << ", " << inc[1] << std::endl;
+    */
     
 
 
@@ -232,11 +234,9 @@ Vec2 findContactPoints (const Body& b1, const Body& b2, const Vec2& separationAx
         clip(inc, inc[0], inc[1], ref.v1 *-ref.e,-ref.e);
         clip(inc, inc[0], inc[1], ref.v2 * ref.e, ref.e);
     }
-    std::cout << inc[0] << inc[1] << std::endl;
 
     // Normal Clip
     clip(inc, inc[0], inc[1], ref.v1 * norm, norm);
-    std::cout << inc[0] << inc[1] << std::endl;
 
 
     debugPoints.push_back(std::make_pair(inc[0], Green));
@@ -261,17 +261,18 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
     std::cout << "n:\t" << n << "  p:\t" << p << "  r:\t" << r1 << ", " << r2 << std::endl;
 
     // Find projected relative Velocity
-    const Vec2 vR = (b1.velo + r1 * b1.angVelo) - (b2.velo + r2 * b2.angVelo);
+    const Vec2 vR = b1.velo + Vec2( -r1.x * b1.angVelo, r1.y * b1.angVelo ) -
+                    b2.velo - Vec2( -r1.x * b2.angVelo, r2.y * b2.angVelo );
+
     const double vRP = vR * n;
 
-
+    std::cout << "\t" << vR << "\t" << vRP << std::endl;
     // If the velocities are separating, don't resolve
-    if (vRP < 0) 
-        return;
+    //if (vRP < 0) 
+    //    return;
 
-    const double e = 1 + 0.1;
+    const double e = 1 + 0.0001;
 
-    // Calculate impulse (I DON'T GET THIS)
     double J;
     if (n.norm() == r1.norm() || -n.norm() == r2.norm()) 
     {
@@ -280,14 +281,14 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
     else 
     {
         std::cout << "Inertial factors\n";
-        const double b1IntertiaFactor = orthogonalTowards(r1, n) * n * b1.invInertia;
-        const double b2IntertiaFactor = orthogonalTowards(r2, n) * n * b2.invInertia;
+        const double b1IntertiaFactor = ((r1 * r1) - (r1*n)*(r1*n)) * b1.invInertia;
+        const double b2IntertiaFactor = ((r2 * r2) - (r2*n)*(r2*n)) * b2.invInertia;
 
         std::cout << "Intertial F's: " << b1IntertiaFactor << " " << b2IntertiaFactor << std::endl;
         J = e * vRP / ( b1.invMass + b2.invMass + b1IntertiaFactor + b2IntertiaFactor );
     } 
 
-    
+    std::cout << "J :" << J << std::endl;
     const Vec2 impulse = n * J;
     
     // Apply Impulse
@@ -295,8 +296,8 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
     b2.velo = b2.velo + impulse * b2.invMass;
 
     if (!(n.norm() == r1.norm())) {
-        b1.angVelo += b1.invInertia * (-orthogonalTowards(r1, n) * impulse);
-        b2.angVelo += b2.invInertia * (-orthogonalTowards(r2, n) * impulse);
+        b1.angVelo -= b1.invInertia * (r1.x * impulse.y - r1.y * impulse.x);
+        b2.angVelo += b2.invInertia * (r2.x * impulse.y - r2.y * impulse.x);
     }
 
     
@@ -309,6 +310,7 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
     b1.pos = b1.pos - correctionV * b1.invMass;
     b2.pos = b2.pos + correctionV * b2.invMass;
 }
+
 
 // Checks for collisions and resolves accordingly.
 void Environment::collide() {
