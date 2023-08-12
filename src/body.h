@@ -41,7 +41,8 @@ public:
     void runControllers (const Application& app); 
 
     void applyForce (const Vec2& f);
-    void update(const double dt);
+    void accumulateForces (const double dt);
+    void update (const double dt);
 
     // Getters
     double getMass  () const { return mass; }
@@ -70,9 +71,10 @@ public:
     void setPos     (const Vec2& v) { pos = v; }
     void setVelo    (const Vec2& v) { velo = v; } 
     void setAngAccl (double a)      { angAccl = a; }
+    void setOrient  (double o)      { orient = o; }
 
     // Collision Resolver 
-    static void resolve(Body& b1, Body& b2, const Collision& collision); 
+    static void resolve(Body& b1, Body& b2, const Collision& collision, const double dt); 
 
     // Convenience factories
     static std::unique_ptr<Body> makeRect(double x, double y, double w, double h, double m);

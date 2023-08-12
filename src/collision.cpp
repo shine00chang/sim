@@ -92,16 +92,13 @@ std::optional<std::pair<double, Vec2>> detectCollisionSAT(const Body& b1, const 
         // If no overlap
         if (max1 < min2 || max2 < min1) 
         {
-            //std::cout << "no overlap\n";
             return std::nullopt;
         }
         else 
         // Check overlap to find MTV
         {
             double o = max1-min2;
-            //std::cout << "axis: " << axis << "\t[" << max1 << ",  " << min1 << "]\t[" << max2 << ",  " << min2 << "]\toverlap: " << o << std::endl;
             if (std::isnan(overlap) ||  o < overlap) {
-                //std::cout << "min: " << o << std::endl;
                 overlap = o;
                 separationNorm = axis;
             }
@@ -222,7 +219,6 @@ Vec2 findContactPoints (const Body& b1, const Body& b2, const Vec2& separationAx
     */
     
 
-
     // Adjacent Clip 
     // v1 -- v2
     if (ref.v1 * ref.e < ref.v2 * ref.e) 
@@ -240,70 +236,76 @@ Vec2 findContactPoints (const Body& b1, const Body& b2, const Vec2& separationAx
     // Normal Clip
     clip(inc, inc[0], inc[1], ref.v1 * norm, norm);
 
-    injectDebugEffect(std::make_shared<PointEffect>(inc[0], Green));
-    injectDebugEffect(std::make_shared<PointEffect>(inc[1], Green));
 
-    return inc[0];
+    // Select Point with higher overlap
+    Vec2 p = inc[1];
+    if (inc[0] * norm > inc[1] * norm) 
+    {
+        p = inc[0];
+    }
+    injectDebugEffect(std::make_shared<PointEffect>(p, Green));
+
+    return p; 
 }
 
 
+constexpr double k_biasF = 0.3;
+constexpr double k_allowedPenetration = 0.001;
+
 // Resolve a collision between two bodies.
 // -> Impulse resolution
-void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
+void Body::resolve(Body& b1, Body& b2, const Collision& collision, const double dt) {
 
     const Vec2& n = collision.norm;
     const Vec2& p = collision.contactPoint;
 
-    injectDebugEffect(std::make_shared<PointEffect>(p, Red));
     injectDebugEffect(std::make_shared<VectorEffect>(p, n * 20, Red));
-
 
     // Calculate Radius
     const Vec2 r1 = p - b1.getPos();
     const Vec2 r2 = p - b2.getPos();
-    std::cout << "n:\t" << n << "  p:\t" << p << "  r:\t" << r1 << ", " << r2 << std::endl;
+    //std::cout << "n:\t" << n << "  p:\t" << p << "  r:\t" << r1 << ", " << r2 << std::endl;
 
     // Find projected relative Velocity
-    const Vec2 vR = b1.velo + Vec2( -r1.x * b1.angVelo, r1.y * b1.angVelo ) -
-                    b2.velo - Vec2( -r1.x * b2.angVelo, r2.y * b2.angVelo );
+    const Vec2 vR = b1.velo + Vec2( -r1.y * b1.angVelo, r1.x * b1.angVelo ) -
+                    b2.velo - Vec2( -r2.y * b2.angVelo, r2.x * b2.angVelo );
 
     const double vRP = vR * n;
+    const double bias = -k_biasF / dt * std::min(0.0, collision.depth + k_allowedPenetration);
 
-    std::cout << "\t" << vR << "\t" << vRP << std::endl;
+
+    //std::cout << "Relative Velos: " << vR << "\t" << vRP << std::endl;
     // If the velocities are separating, don't resolve
     //if (vRP < 0) 
     //    return;
 
     const double e = 1 + 0.0001;
 
-    double J;
-    if (n.norm() == r1.norm() || -n.norm() == r2.norm()) 
-    {
-        J = e * vRP / ( b1.invMass + b2.invMass);
-    }
-    else 
-    {
-        std::cout << "Inertial factors\n";
-        const double b1IntertiaFactor = ((r1 * r1) - (r1*n)*(r1*n)) * b1.invInertia;
-        const double b2IntertiaFactor = ((r2 * r2) - (r2*n)*(r2*n)) * b2.invInertia;
+    const double b1IntertiaFactor = ((r1 * r1) - (r1*n)*(r1*n)) * b1.invInertia;
+    const double b2IntertiaFactor = ((r2 * r2) - (r2*n)*(r2*n)) * b2.invInertia;
 
-        std::cout << "Intertial F's: " << b1IntertiaFactor << " " << b2IntertiaFactor << std::endl;
-        J = e * vRP / ( b1.invMass + b2.invMass + b1IntertiaFactor + b2IntertiaFactor );
-    } 
-
-    std::cout << "J :" << J << std::endl;
+    //std::cout << "Intertial F's: " << b1IntertiaFactor << " " << b2IntertiaFactor << std::endl;
+    double J = e * (vRP + bias) / ( b1.invMass + b2.invMass + b1IntertiaFactor + b2IntertiaFactor );
+     
     const Vec2 impulse = n * J;
+    //std::cout << "impulse: " << impulse << std::endl;
+
+    injectDebugEffect(std::make_shared<VectorEffect>(b1.getPos(), r1, Green));
+    injectDebugEffect(std::make_shared<VectorEffect>(b2.getPos(), r2, Green));
+
     
     // Apply Impulse
     b1.velo = b1.velo - impulse * b1.invMass;
     b2.velo = b2.velo + impulse * b2.invMass;
 
-    if (!(n.norm() == r1.norm())) {
-        b1.angVelo -= b1.invInertia * (r1.x * impulse.y - r1.y * impulse.x);
-        b2.angVelo += b2.invInertia * (r2.x * impulse.y - r2.y * impulse.x);
-    }
+    b1.angVelo -= b1.invInertia * (Vec2(-r1.y, r1.x) * impulse);
+    b2.angVelo += b2.invInertia * (Vec2(-r2.y, r2.x) * impulse);
 
-    
+    std::cout << "velo delta: " << -impulse * b1.invMass << "\t";
+    std::cout << "angV delta: " << -b1.invInertia * (Vec2(-r1.y, r1.x) * impulse) << std::endl;
+
+
+    /*
     // (Sink Prevention) Positional Correction, Linear Projection
     const double percent = 0.2;     // usually 20% to 80% 
     const double slop    = 0.01;    // usually 0.01 to 0.1 
@@ -312,11 +314,12 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision) {
 
     b1.pos = b1.pos - correctionV * b1.invMass;
     b2.pos = b2.pos + correctionV * b2.invMass;
+    */
 }
 
 
 // Checks for collisions and resolves accordingly.
-void Environment::collide() {
+void Environment::collide(const double dt) {
         
     // Prune with boardphase
     std::vector<Body>& bodyList = boardphase(*this);
@@ -338,7 +341,7 @@ void Environment::collide() {
             bodyList[i].color = SDL_Color{100,100,100};
             bodyList[j].color = SDL_Color{100,100,100};
 
-            Body::resolve(bodyList[i], bodyList[j], collision);
+            Body::resolve(bodyList[i], bodyList[j], collision, dt);
         }
     }
 }

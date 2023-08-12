@@ -3,6 +3,7 @@
 
 #include "environment.h"
 #include "app.h"
+#include <cmath>
 
 class TestEnvironments {
 public:
@@ -38,9 +39,11 @@ public:
     static Environment testEnv1() {
         Environment env; 
 
-        auto r1 = Body::makeRect(340, 400, 50, 50, 10);
+        auto r1 = Body::makeRect(360, 400, 50, 50, 10);
         auto r2 = Body::makeRect(300, 330, 50, 50, 10);
-        r1->applyForce(Vec2{0, -20000});
+        r1->applyForce(Vec2{0, -10000});
+        r1->setOrient(std::atan(0.6));
+        r2->setOrient(std::atan(1.5));
 
         auto floor = Body::makeRect(340, 0, 680, 50, 1e10);
         floor->setGravity(false);
@@ -96,22 +99,18 @@ public:
         return env;
     }
 
-    /* TODO
+    /* Diamond Falling 
      */ 
     static Environment testEnv4() {
         Environment env;
 
         auto r1 = Body::makeRect(340, 300, 50, 50, 10);
-        auto r2 = Body::makeRect(300, 200, 50, 50, 10); 
-
-        r1->setGravity(false);
-        r2->setGravity(false);
-
-        r1->useController(debugController);
+        r1->setOrient(std::atan(0.8));
+        auto floor = Body::makeRect(340, 0, 680, 50, 1e10);
+        floor->setGravity(false);
 
         env.addBody(*r1.release());
-        env.addBody(*r2.release());
-
+        env.addBody(*floor.release());
 
         return env;
     }

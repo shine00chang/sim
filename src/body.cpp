@@ -18,6 +18,7 @@ Body::Body(double x, double y, std::vector<Vec2> points, double mass) :
     double r = 0;
     for (const auto& p : points) 
         r += p.mag();
+    r /= points.size();
 
     inertia = mass * r * r / 2;
     invInertia = 1.0 / inertia;
@@ -25,30 +26,31 @@ Body::Body(double x, double y, std::vector<Vec2> points, double mass) :
 
 
 // Apply force
-//
 void Body::applyForce(const Vec2 &f) {
     accl = accl + f * invMass;
 }
 
+
+// Accumulate Force
+void Body::accumulateForces(const double dt) {
+    velo = velo + accl * dt;
+    orient += angVelo * dt;
+}
+
+
 // Integration
 void Body::update(const double dt) {
-    // Integrate Acceleration
-    velo = velo + accl * dt;
-
     // Integrate Velocity
     pos = pos + velo * dt;
-
-    // Reset Accl
-    accl = Vec2{0, 0};
 
     // Integrate Ang Accl
     angVelo += angAccl * dt;
 
-    // Integrate Ang Velocity
-    orient += angVelo * dt;
-
+    // Reset Accel
+    accl = Vec2{0, 0};
     angAccl = 0;
 }
+
 
 // Have controllers act on object. 
 void Body::runControllers(const Application &app) {

@@ -11,6 +11,7 @@
 #include <iostream>
 #include <utility>
 
+constexpr double GRAVTIY = -20;
 
 void loop (Application app, View view, Environment env) 
 {
@@ -29,26 +30,29 @@ void loop (Application app, View view, Environment env)
         prevIterMs = ms;
 
         // Movement
+        for (Body& body : env.getBodiesMut()) 
         {
-            for (Body& body : env.getBodiesMut()) 
-            {
-                // DEBUG: Set color to red on collision: Reset
-                body.color = SDL_Color{0,0,0};
-                
-                // Controllers
-                body.runControllers(app);
+            // Controllers
+            body.runControllers(app);
 
-                // Gravity
-                if (body.getGravity())
-                    body.applyForce(Vec2(0, -9.8 * body.getMass()));
+            // Gravity
+            if (body.getGravity())
+                body.applyForce(Vec2(0, GRAVTIY * body.getMass()));
 
-                // Integration
-                body.update(dt);
-            }
+            // Integration
+            body.accumulateForces(dt);
         }
+        
 
         // Collision
-        env.collide();
+        env.collide(dt);
+
+        // Update
+        for (Body& body : env.getBodiesMut()) 
+        {
+            body.update(dt);
+        }
+
 
         // Render
         app.render(view, env);

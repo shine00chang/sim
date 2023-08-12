@@ -13,7 +13,7 @@ public:
      Environment() {};
     ~Environment() {};
 
-    void collide();
+    void collide(const double dt);
     Body* addBody(const Body& body) { m_bodies.push_back(body); return &m_bodies.back(); } 
 
     std::vector<Body>& getBodiesMut() { return m_bodies; }
