@@ -249,9 +249,6 @@ Vec2 findContactPoints (const Body& b1, const Body& b2, const Vec2& separationAx
 }
 
 
-constexpr double k_biasF = 0.3;
-constexpr double k_allowedPenetration = 0.001;
-
 // Resolve a collision between two bodies.
 // -> Impulse resolution
 void Body::resolve(Body& b1, Body& b2, const Collision& collision, const double dt) {
@@ -271,7 +268,6 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision, const double 
                     b2.velo - Vec2( -r2.y * b2.angVelo, r2.x * b2.angVelo );
 
     const double vRP = vR * n;
-    const double bias = -k_biasF / dt * std::min(0.0, collision.depth + k_allowedPenetration);
 
 
     //std::cout << "Relative Velos: " << vR << "\t" << vRP << std::endl;
@@ -285,7 +281,7 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision, const double 
     const double b2IntertiaFactor = ((r2 * r2) - (r2*n)*(r2*n)) * b2.invInertia;
 
     //std::cout << "Intertial F's: " << b1IntertiaFactor << " " << b2IntertiaFactor << std::endl;
-    double J = e * (vRP + bias) / ( b1.invMass + b2.invMass + b1IntertiaFactor + b2IntertiaFactor );
+    double J = e * vRP / ( b1.invMass + b2.invMass + b1IntertiaFactor + b2IntertiaFactor );
      
     const Vec2 impulse = n * J;
     //std::cout << "impulse: " << impulse << std::endl;
@@ -305,7 +301,6 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision, const double 
     std::cout << "angV delta: " << -b1.invInertia * (Vec2(-r1.y, r1.x) * impulse) << std::endl;
 
 
-    /*
     // (Sink Prevention) Positional Correction, Linear Projection
     const double percent = 0.2;     // usually 20% to 80% 
     const double slop    = 0.01;    // usually 0.01 to 0.1 
@@ -314,7 +309,6 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision, const double 
 
     b1.pos = b1.pos - correctionV * b1.invMass;
     b2.pos = b2.pos + correctionV * b2.invMass;
-    */
 }
 
 
