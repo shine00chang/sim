@@ -1,34 +1,15 @@
 cmake_minimum_required(VERSION 3.10)
+set(CMAKE_SKIP_INSTALL_RULES True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-project(physics)
+set(PROJECT_NAME physics)
 
-# Add your source files
-set(SOURCES
-    src/main.cpp
-    src/app.cpp
-    src/collision.cpp
-    src/body.cpp
-    src/view.cpp
-    src/effects.cpp
-    src/environment.cpp
-    src/testEnv.cpp
-)
 
-# Add your header files
-set(HEADERS
-    src/app.h
-    src/environment.h
-    src/collision.h
-    src/core.h
-    src/body.h
-    src/view.h
-)
+project(${PROJECT_NAME})
 
-include_directories(SDL2/include)
-link_directories(SDL2/lib)
 
-add_executable(prog ${SOURCES} ${HEADERS})
-set_property(TARGET prog PROPERTY CXX_STANDARD 20)
+add_subdirectory(src)
 
-target_link_libraries(prog PUBLIC SDL2)
