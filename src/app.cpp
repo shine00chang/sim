@@ -87,6 +87,7 @@ void Application::loop (View view, Environment env)
             // Integration
             body.accumulateForces(dt);
         }
+        env.runControllers(*this);
 
         // Collision
         env.collide(dt);
