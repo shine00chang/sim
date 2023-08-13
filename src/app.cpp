@@ -1,9 +1,14 @@
 #include "app.h"
 #include "SDL.h"
 #include "SDL_render.h"
+#include "environment.h"
+#include "SDL_timer.h"
+#include "SDL_keyboard.h"
+#include "environment.h"
 
 #include <string>
 #include <format>
+#include <memory>
 
 
 Application::Application () {
@@ -17,7 +22,7 @@ Application::Application () {
         throw "Window could not be created! SDL_Error: %s\n"; // SDL_GetError();
    
     // Setup renderer 
-    m_renderer =  SDL_CreateRenderer( m_window, -1, SDL_RENDERER_ACCELERATED);
+    m_renderer = SDL_CreateRenderer( m_window, -1, SDL_RENDERER_ACCELERATED);
 }
 
 Application::~Application () {
@@ -49,4 +54,56 @@ void Application::updateEvents() {
             break;
         }
     }
+}
+
+
+
+void Application::loop (View view, Environment env) 
+{
+    constexpr double dt = 0.016;
+    uint64_t prevIterMs = SDL_GetTicks64();
+
+    while (isRunning()) 
+    {
+
+        // Check quit event
+        updateEvents();
+
+        // Get Dt
+        const uint64_t ms = SDL_GetTicks64(); 
+        if (ms - prevIterMs < dt * 1000) continue;
+        prevIterMs = ms;
+
+        // Movement
+        for (Body& body : env.getBodiesMut()) 
+        {
+            // Controllers
+            body.runControllers(*this);
+
+            // Gravity
+            if (body.getGravity())
+                body.applyForce(Vec2(0, GRAVITY * body.getMass()));
+
+            // Integration
+            body.accumulateForces(dt);
+        }
+
+        // Collision
+        env.collide(dt);
+
+        // Update
+        for (Body& body : env.getBodiesMut()) 
+        {
+            body.update(dt);
+        }
+
+        // Render
+        view.render(m_renderer, env);
+    }
+}
+
+void Application::start (Environment env)
+{
+    View view = View();
+    loop(std::move(view), std::move(env));
 }

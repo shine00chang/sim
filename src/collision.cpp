@@ -297,10 +297,6 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision, const double 
     b1.angVelo -= b1.invInertia * (Vec2(-r1.y, r1.x) * impulse);
     b2.angVelo += b2.invInertia * (Vec2(-r2.y, r2.x) * impulse);
 
-    std::cout << "velo delta: " << -impulse * b1.invMass << "\t";
-    std::cout << "angV delta: " << -b1.invInertia * (Vec2(-r1.y, r1.x) * impulse) << std::endl;
-
-
     // (Sink Prevention) Positional Correction, Linear Projection
     const double percent = 0.2;     // usually 20% to 80% 
     const double slop    = 0.01;    // usually 0.01 to 0.1 

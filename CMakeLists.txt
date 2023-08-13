@@ -11,6 +11,8 @@ set(SOURCES
     src/body.cpp
     src/view.cpp
     src/effects.cpp
+    src/environment.cpp
+    src/testEnv.cpp
 )
 
 # Add your header files
@@ -20,7 +22,6 @@ set(HEADERS
     src/collision.h
     src/core.h
     src/body.h
-    src/testEnv.h
     src/view.h
 )
 

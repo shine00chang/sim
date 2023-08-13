@@ -225,6 +225,30 @@ src/effects.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/effects.cpp.s
 .PHONY : src/effects.cpp.s
 
+src/environment.o: src/environment.cpp.o
+.PHONY : src/environment.o
+
+# target to build an object file
+src/environment.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/environment.cpp.o
+.PHONY : src/environment.cpp.o
+
+src/environment.i: src/environment.cpp.i
+.PHONY : src/environment.i
+
+# target to preprocess a source file
+src/environment.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/environment.cpp.i
+.PHONY : src/environment.cpp.i
+
+src/environment.s: src/environment.cpp.s
+.PHONY : src/environment.s
+
+# target to generate assembly for a file
+src/environment.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/environment.cpp.s
+.PHONY : src/environment.cpp.s
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -248,6 +272,30 @@ src/main.s: src/main.cpp.s
 src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
+
+src/testEnv.o: src/testEnv.cpp.o
+.PHONY : src/testEnv.o
+
+# target to build an object file
+src/testEnv.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/testEnv.cpp.o
+.PHONY : src/testEnv.cpp.o
+
+src/testEnv.i: src/testEnv.cpp.i
+.PHONY : src/testEnv.i
+
+# target to preprocess a source file
+src/testEnv.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/testEnv.cpp.i
+.PHONY : src/testEnv.cpp.i
+
+src/testEnv.s: src/testEnv.cpp.s
+.PHONY : src/testEnv.s
+
+# target to generate assembly for a file
+src/testEnv.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/prog.dir/build.make CMakeFiles/prog.dir/src/testEnv.cpp.s
+.PHONY : src/testEnv.cpp.s
 
 src/view.o: src/view.cpp.o
 .PHONY : src/view.o
@@ -294,9 +342,15 @@ help:
 	@echo "... src/effects.o"
 	@echo "... src/effects.i"
 	@echo "... src/effects.s"
+	@echo "... src/environment.o"
+	@echo "... src/environment.i"
+	@echo "... src/environment.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/testEnv.o"
+	@echo "... src/testEnv.i"
+	@echo "... src/testEnv.s"
 	@echo "... src/view.o"
 	@echo "... src/view.i"
 	@echo "... src/view.s"

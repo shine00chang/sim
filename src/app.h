@@ -6,6 +6,7 @@
 #include "environment.h"
 #include "view.h"
 
+#include <memory>
 #include <set>
 
 
@@ -18,17 +19,18 @@ class Application {
     std::set<SDL_Keycode> m_keys;
     bool m_running = true;
 
+    void loop (View view, Environment env);
+    void updateEvents ();
 public: 
+
+
      Application();
     ~Application();
 
-    inline void render (View& view, const Environment& env) { view.render(m_renderer, env); }; 
-    void updateEvents ();
+    void start(Environment env);
 
     bool isPressed (SDL_Keycode k) const { return m_keys.count(k); }
     bool isRunning () const { return m_running; }
-
-    SDL_Window* window () { return m_window; }
 };
 
 #endif
