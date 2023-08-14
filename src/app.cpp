@@ -35,6 +35,9 @@ Application::~Application () {
 
 // Check & Update state according to events.
 void Application::updateEvents() {
+    // clear keys. keys should only include keys that were just pressed 
+    m_keys.clear();
+
     SDL_Event ev;
     while (SDL_PollEvent(&ev) != 0) {
         switch( ev.type ){
@@ -46,11 +49,12 @@ void Application::updateEvents() {
 
         // Update keys
         case SDL_KEYDOWN:
+            m_keysHeld.insert(ev.key.keysym.sym);
             m_keys.insert(ev.key.keysym.sym);
             break;
 
         case SDL_KEYUP:
-            m_keys.erase(ev.key.keysym.sym);
+            m_keysHeld.erase(ev.key.keysym.sym);
             break;
         }
     }
@@ -65,7 +69,6 @@ void Application::loop (View view, Environment env)
 
     while (isRunning()) 
     {
-
         // Check quit event
         updateEvents();
 

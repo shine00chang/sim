@@ -18,6 +18,7 @@ class Body
     double invMass;
     double inertia;
     double invInertia;
+    double friction = 0.5;
 
     std::vector<Vec2> points;
 

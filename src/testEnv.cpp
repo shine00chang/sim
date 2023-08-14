@@ -15,22 +15,22 @@
  * WASD to increment position. Arrow keys to apply force.
  */
 void debugController (Body* body, const Application& app) {
-    if (app.isPressed(SDLK_w)) {
+    if (app.isHeld(SDLK_w)) {
         body->applyForce(Vec2(0, 100));
     }
-    if (app.isPressed(SDLK_a)) {
+    if (app.isHeld(SDLK_a)) {
         body->applyForce(Vec2(-100, 0));
     }
-    if (app.isPressed(SDLK_s)) {
+    if (app.isHeld(SDLK_s)) {
         body->applyForce(Vec2(0, -100));
     }
-    if (app.isPressed(SDLK_d)) {
+    if (app.isHeld(SDLK_d)) {
         body->applyForce(Vec2(100, 0));
     }
-    if (app.isPressed(SDLK_q)) {
+    if (app.isHeld(SDLK_q)) {
         body->setAngAccl( body->getAngAccl() + 0.1 );
     }
-    if (app.isPressed(SDLK_e)) {
+    if (app.isHeld(SDLK_e)) {
         body->setAngAccl( body->getAngAccl() - 0.1 );
     }
 }

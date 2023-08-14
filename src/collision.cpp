@@ -256,46 +256,65 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision, const double 
     const Vec2& n = collision.norm;
     const Vec2& p = collision.contactPoint;
 
-    injectDebugEffect(std::make_shared<VectorEffect>(p, n * 20, Red));
+    // Collision Tangent
+    const Vec2 t = Vec2(-collision.norm.y, collision.norm.x);
 
     // Calculate Radius
     const Vec2 r1 = p - b1.getPos();
     const Vec2 r2 = p - b2.getPos();
+
+    injectDebugEffect(std::make_shared<VectorEffect>(p, n * 20, Red));
+    injectDebugEffect(std::make_shared<VectorEffect>(p, t * 20, Blue));
+    injectDebugEffect(std::make_shared<VectorEffect>(b1.getPos(), r1, Green));
+    injectDebugEffect(std::make_shared<VectorEffect>(b2.getPos(), r2, Green));
+
+
     //std::cout << "n:\t" << n << "  p:\t" << p << "  r:\t" << r1 << ", " << r2 << std::endl;
 
     // Find projected relative Velocity
     const Vec2 vR = b1.velo + Vec2( -r1.y * b1.angVelo, r1.x * b1.angVelo ) -
                     b2.velo - Vec2( -r2.y * b2.angVelo, r2.x * b2.angVelo );
 
-    const double vRP = vR * n;
+    const double vRn = vR * n;
+    const double vRt = vR * t;
 
-
-    //std::cout << "Relative Velos: " << vR << "\t" << vRP << std::endl;
-    // If the velocities are separating, don't resolve
-    //if (vRP < 0) 
-    //    return;
 
     const double e = 1 + 0.0001;
 
-    const double b1IntertiaFactor = ((r1 * r1) - (r1*n)*(r1*n)) * b1.invInertia;
-    const double b2IntertiaFactor = ((r2 * r2) - (r2*n)*(r2*n)) * b2.invInertia;
+    double Jn, Jt;
+    {
+        const double b1IntertiaFactor = ((r1 * r1) - (r1*n)*(r1*n)) * b1.invInertia;
+        const double b2IntertiaFactor = ((r2 * r2) - (r2*n)*(r2*n)) * b2.invInertia;
 
-    //std::cout << "Intertial F's: " << b1IntertiaFactor << " " << b2IntertiaFactor << std::endl;
-    double J = e * vRP / ( b1.invMass + b2.invMass + b1IntertiaFactor + b2IntertiaFactor );
+        Jn = e * vRn / ( b1.invMass + b2.invMass + b1IntertiaFactor + b2IntertiaFactor );
+    }
+    {
+        const double b1IntertiaFactor = ((r1 * r1) - (r1*t)*(r1*t)) * b1.invInertia;
+        const double b2IntertiaFactor = ((r2 * r2) - (r2*t)*(r2*t)) * b2.invInertia;
+        const double friction = std::sqrt(b1.friction * b2.friction);
      
-    const Vec2 impulse = n * J;
-    //std::cout << "impulse: " << impulse << std::endl;
-
-    injectDebugEffect(std::make_shared<VectorEffect>(b1.getPos(), r1, Green));
-    injectDebugEffect(std::make_shared<VectorEffect>(b2.getPos(), r2, Green));
-
-    
+        Jt = friction * e * vRt / ( b1.invMass + b2.invMass + b1IntertiaFactor + b2IntertiaFactor );
+    }
+     
     // Apply Impulse
+    const Vec2 impulse = n * Jn;
+
     b1.velo = b1.velo - impulse * b1.invMass;
     b2.velo = b2.velo + impulse * b2.invMass;
 
     b1.angVelo -= b1.invInertia * (Vec2(-r1.y, r1.x) * impulse);
     b2.angVelo += b2.invInertia * (Vec2(-r2.y, r2.x) * impulse);
+
+
+    // Apply Tangent Impulse
+    const Vec2 impulseT = t * Jt;
+
+    b1.velo = b1.velo - impulseT * b1.invMass;
+    b2.velo = b2.velo + impulseT * b2.invMass;
+
+    b1.angVelo -= b1.invInertia * (Vec2(-r1.y, r1.x) * impulseT);
+    b2.angVelo += b2.invInertia * (Vec2(-r2.y, r2.x) * impulseT);
+
 
     // (Sink Prevention) Positional Correction, Linear Projection
     const double percent = 0.2;     // usually 20% to 80% 

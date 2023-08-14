@@ -2,11 +2,10 @@
 #define __VIEW_h__
 
 #include "SDL_render.h"
+#include "core.h"
 #include "environment.h"
 
-#include <algorithm>
 #include <memory>
-#include <vector>
 #include <list>
 
 enum Colors {

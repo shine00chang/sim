@@ -17,6 +17,7 @@ class Application {
     SDL_Window* m_window;
     SDL_Renderer* m_renderer;
     std::set<SDL_Keycode> m_keys;
+    std::set<SDL_Keycode> m_keysHeld;
     bool m_running = true;
 
     void loop (View view, Environment env);
@@ -30,6 +31,7 @@ public:
     void start(Environment env);
 
     bool isPressed (SDL_Keycode k) const { return m_keys.count(k); }
+    bool isHeld    (SDL_Keycode k) const { return m_keysHeld.count(k); }
     bool isRunning () const { return m_running; }
 };
 

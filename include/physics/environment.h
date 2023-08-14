@@ -1,8 +1,8 @@
 #ifndef __ENVIRONMENT_h__
 #define __ENVIRONMENT_h__
 
-#include "body.h"
 #include "controller.h"
+#include "body.h"
 
 #include <vector>
 #include <map>
