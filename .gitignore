@@ -1,5 +1,4 @@
-prog.dSYM
-prog
+.DS_Store
 
 # CMake
 CMakeFiles
