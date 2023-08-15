@@ -1,7 +1,7 @@
 # 2D Physics Simulator (with demos)
 
 A simple 2D physics engine made as an exercise. <br>
-Watch a demo [here](https://github.com/shine00chang/sim/blob/main/demo-rainy-day.mp4)! 
+Watch demos [here](https://github.com/shine00chang/sim/blob/main/demo-videos)! 
 
 Check out Erin Catto's `box2d-lite` for a complete 2D physics engine. <br>
 Requires SDL2. <br>
