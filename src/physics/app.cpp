@@ -1,5 +1,6 @@
 #include "app.h"
 #include "SDL.h"
+#include "SDL_events.h"
 #include "SDL_render.h"
 #include "environment.h"
 #include "SDL_timer.h"
@@ -37,6 +38,7 @@ Application::~Application () {
 void Application::updateEvents() {
     // clear keys. keys should only include keys that were just pressed 
     m_keys.clear();
+    m_mouseClick = false;
 
     SDL_Event ev;
     while (SDL_PollEvent(&ev) != 0) {
@@ -55,6 +57,16 @@ void Application::updateEvents() {
 
         case SDL_KEYUP:
             m_keysHeld.erase(ev.key.keysym.sym);
+            break;
+
+        // Mouse
+        case SDL_MOUSEBUTTONDOWN: 
+            m_mouseClick = true;
+            break;
+
+        case SDL_MOUSEMOTION:
+            m_mouse.x = ev.motion.x;
+            m_mouse.y = ev.motion.y;
             break;
         }
     }
@@ -78,6 +90,8 @@ void Application::loop (View view, Environment env)
         prevIterMs = ms;
 
         // Movement
+        env.runControllers(*this);
+
         for (Body& body : env.getBodiesMut()) 
         {
             // Controllers
@@ -90,7 +104,6 @@ void Application::loop (View view, Environment env)
             // Integration
             body.accumulateForces(dt);
         }
-        env.runControllers(*this);
 
         // Collision
         env.collide(dt);

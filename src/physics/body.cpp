@@ -34,17 +34,15 @@ void Body::applyForce(const Vec2 &f) {
 // Accumulate Force
 void Body::accumulateForces(const double dt) {
     velo = velo + accl * dt;
-    orient += angVelo * dt;
+    angVelo += angAccl * dt;
 }
 
 
 // Integration
 void Body::update(const double dt) {
-    // Integrate Velocity
-    pos = pos + velo * dt;
 
-    // Integrate Ang Accl
-    angVelo += angAccl * dt;
+    pos = pos + velo * dt;
+    orient += angVelo * dt;
 
     // Reset Accel
     accl = Vec2{0, 0};
