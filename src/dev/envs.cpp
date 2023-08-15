@@ -1,14 +1,5 @@
-#ifndef __TESTENV_h__
-#define __TESTENV_h__
-
 #include "environment.h"
 #include "app.h"
-#include <cmath>
-#include <cstdlib>
-#include <string>
-#include <map>
-
-
 
 /*
  * Debug / Test purposes. 
@@ -150,7 +141,8 @@ Environment rainyDay () {
 }
 
 
-void makeTestEnvs () {
+void setEnvs () {
+    DefaultEnv = "rainyDay";
     EnvironmentLibrary = {
         {"test1", test1()},
         {"test2", test2()},
@@ -159,4 +151,3 @@ void makeTestEnvs () {
         {"rainyDay", rainyDay()},
     };
 }
-#endif

@@ -32,7 +32,6 @@ public:
 };
 
 extern std::map<std::string, Environment> EnvironmentLibrary;
-void makeTestEnvs ();
-
+extern std::string DefaultEnv;
 
 #endif
