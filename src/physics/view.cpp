@@ -39,12 +39,12 @@ void View::render(SDL_Renderer* renderer, const Environment& env) {
     SDL_RenderClear( renderer );
 
     // Render each body as polygon 
-    for (const Body& body : env.getBodies()) 
+    for (const auto& body : env.getBodies()) 
     {
         // Set render color to grey ( rect will be rendered in this color )
-        SDL_SetRenderDrawColor( renderer, body.color.r, body.color.g, body.color.b, body.color.a);
+        SDL_SetRenderDrawColor( renderer, body->color.r, body->color.g, body->color.b, body->color.a);
 
-        auto points = body.getPointsGlobal();
+        auto points = body->getPointsGlobal();
         for (int i=0; i<points.size(); i++) {
             const Vec2& a = points[i];
             const Vec2& b = points[i == points.size()-1 ? 0 : i+1];

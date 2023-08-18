@@ -66,7 +66,7 @@ void Application::updateEvents() {
 
         case SDL_MOUSEMOTION:
             m_mouse.x = ev.motion.x;
-            m_mouse.y = ev.motion.y;
+            m_mouse.y = SCREEN_HEIGHT - ev.motion.y;
             break;
         }
     }
@@ -90,28 +90,28 @@ void Application::loop (View view, Environment env)
         prevIterMs = ms;
 
         // Movement
-        env.runControllers(*this);
+        env.runControllers(*this, view);
 
-        for (Body& body : env.getBodiesMut()) 
+        for (auto& body : env.getBodiesMut()) 
         {
             // Controllers
-            body.runControllers(*this);
+            body->runControllers(*this, view);
 
             // Gravity
-            if (body.getGravity())
-                body.applyForce(Vec2(0, GRAVITY * body.getMass()));
+            if (body->getGravity())
+                body->applyForce(Vec2(0, GRAVITY * body->getMass()));
 
             // Integration
-            body.accumulateForces(dt);
+            body->accumulateForces(dt);
         }
 
         // Collision
         env.collide(dt);
 
         // Update
-        for (Body& body : env.getBodiesMut()) 
+        for (auto& body : env.getBodiesMut()) 
         {
-            body.update(dt);
+            body->update(dt);
         }
 
         // Render

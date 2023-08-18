@@ -4,6 +4,7 @@
 #include "controller.h"
 #include "body.h"
 
+#include <memory>
 #include <vector>
 #include <map>
 #include <string>
@@ -12,8 +13,9 @@
 constexpr double GRAVITY = -40;
 
 class Application;
+class View;
 class Environment {
-    std::vector<Body> m_bodies;
+    std::vector<std::shared_ptr<Body>> m_bodies;
     std::vector<EnvController> m_controllers;
 
 
@@ -22,13 +24,13 @@ public:
     ~Environment() {};
 
     void collide (const double dt);
-    void runControllers (const Application& app);
+    void runControllers (const Application& app, View& view);
 
-    Body* addBody      (const Body& body) { m_bodies.push_back(body); return &m_bodies.back(); } 
+    void addBody       (const std::shared_ptr<Body> body) { m_bodies.push_back(body); } 
     void addController (const EnvController controller) { m_controllers.push_back(controller); }
 
-    std::vector<Body>& getBodiesMut() { return m_bodies; }
-    const std::vector<Body>& getBodies() const { return m_bodies; }
+    std::vector<std::shared_ptr<Body>>& getBodiesMut() { return m_bodies; }
+    const std::vector<std::shared_ptr<Body>>& getBodies() const { return m_bodies; }
 };
 
 extern std::map<std::string, Environment> EnvironmentLibrary;

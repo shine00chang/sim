@@ -10,6 +10,7 @@
 #include <memory>
 
 class Application;
+class View;
 class Body 
 {
     bool gravity = true;
@@ -39,7 +40,7 @@ public:
     ~Body() {};
 
     void useController  (Controller controller) { m_controllers.push_back(controller); }
-    void runControllers (const Application& app); 
+    void runControllers (const Application& app, View& view); 
 
     void applyForce (const Vec2& f);
     void accumulateForces (const double dt);
@@ -78,8 +79,8 @@ public:
     static void resolve(Body& b1, Body& b2, const Collision& collision, const double dt); 
 
     // Convenience factories
-    static std::unique_ptr<Body> makeRect(double x, double y, double w, double h, double m);
-    static std::unique_ptr<Body> makeDiamond(double x, double y, double r, double m);
+    static std::shared_ptr<Body> makeRect(double x, double y, double w, double h, double m);
+    static std::shared_ptr<Body> makeDiamond(double x, double y, double r, double m);
 };
 
 #endif

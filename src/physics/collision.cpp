@@ -14,7 +14,7 @@
 
 
 // Boardphase
-std::vector<Body>& boardphase(Environment& env) {
+std::vector<std::shared_ptr<Body>>& boardphase(Environment& env) {
     // TODO
     return env.getBodiesMut();
 }
@@ -331,7 +331,7 @@ void Body::resolve(Body& b1, Body& b2, const Collision& collision, const double 
 void Environment::collide(const double dt) {
         
     // Prune with boardphase
-    std::vector<Body>& bodyList = boardphase(*this);
+    auto& bodyList = boardphase(*this);
 
     // Find collisions
     for (int i=0; i<bodyList.size(); i++) 
@@ -339,18 +339,14 @@ void Environment::collide(const double dt) {
         for (int j=i+1; j<bodyList.size(); j++) 
         {
             // Check for collision
-            auto opt = detectCollisionSAT(bodyList[i], bodyList[j]);
+            auto opt = detectCollisionSAT(*bodyList[i], *bodyList[j]);
             if (!opt) continue;
             auto [overlap, separationAxis] = *opt;
-            auto contactP = findContactPoints(bodyList[i], bodyList[j], separationAxis);
+            auto contactP = findContactPoints(*bodyList[i], *bodyList[j], separationAxis);
             Collision collision (separationAxis, overlap, contactP);
 
             // Resolve collision
-            // DEBUG: Set color to red 
-            bodyList[i].color = SDL_Color{100,100,100};
-            bodyList[j].color = SDL_Color{100,100,100};
-
-            Body::resolve(bodyList[i], bodyList[j], collision, dt);
+            Body::resolve(*bodyList[i], *bodyList[j], collision, dt);
         }
     }
 }

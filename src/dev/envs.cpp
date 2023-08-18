@@ -5,7 +5,7 @@
  * Debug / Test purposes. 
  * WASD to increment position. Arrow keys to apply force.
  */
-void debugController (Body* body, const Application& app) {
+void debugController (Body* body, const Application& app, View& view) {
     if (app.isHeld(SDLK_w)) {
         body->applyForce(Vec2(0, 100));
     }
@@ -42,9 +42,9 @@ Environment test1() {
     auto floor = Body::makeRect(340, 0, 680, 50, 1e10);
     floor->setGravity(false);
 
-    env.addBody(*r1.release());
-    env.addBody(*r2.release());
-    env.addBody(*floor.release());
+    env.addBody(r1);
+    env.addBody(r2);
+    env.addBody(floor);
 
     return env;
 }
@@ -64,8 +64,8 @@ Environment test2() {
 
     r1->useController(debugController);
 
-    env.addBody(*r1.release());
-    env.addBody(*r2.release());
+    env.addBody(r1);
+    env.addBody(r2);
 
 
     return env;
@@ -86,8 +86,8 @@ Environment test3() {
 
     r1->useController(debugController);
 
-    env.addBody(*r1.release());
-    env.addBody(*r2.release());
+    env.addBody(r1);
+    env.addBody(r2);
 
 
     return env;
@@ -103,8 +103,8 @@ Environment fallingDiamond() {
     auto floor = Body::makeRect(340, 0, 680, 50, 1e10);
     floor->setGravity(false);
 
-    env.addBody(*r1.release());
-    env.addBody(*floor.release());
+    env.addBody(r1);
+    env.addBody(floor);
 
     return env;
 }
@@ -113,16 +113,16 @@ Environment fallingDiamond() {
 /* Gravity & Floor. 
  * Creates random falling block when space bar is pressed
  */
-void rainyController (Environment* env, const Application& app) {
+void rainyController (Environment* env, const Application& app, View& view) {
     if (app.mouseClicked()) {
         double x = app.mouse().x;
-        double y = SCREEN_HEIGHT - app.mouse().y;
+        double y = app.mouse().y;
         double s = std::rand() % 50 + 20;
         double ang = std::asin(std::rand() % 1000 / 1000.0);
 
         auto b = Body::makeRect(x, y, s, s, 10);
         b->setOrient(ang);
-        env->addBody(*b.release());
+        env->addBody(b);
     }
 }
 
@@ -134,7 +134,7 @@ Environment rainyDay () {
     auto floor = Body::makeRect(340, 0, 680, 50, 1e10);
     floor->setGravity(false);
 
-    env.addBody(*floor.release());
+    env.addBody(floor);
     env.addController(rainyController);
 
     return env;

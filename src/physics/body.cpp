@@ -51,33 +51,33 @@ void Body::update(const double dt) {
 
 
 // Have controllers act on object. 
-void Body::runControllers(const Application &app) {
+void Body::runControllers(const Application &app, View& view) {
     for (auto c : m_controllers) 
-        c(this, app);
+        c(this, app, view);
 }
 
 // Convenience Factory function
-std::unique_ptr<Body> Body::makeRect(double x, double y, double w, double h, double m) {
+std::shared_ptr<Body> Body::makeRect(double x, double y, double w, double h, double m) {
     std::vector<Vec2> v{
         Vec2(-w/2, -h/2),
         Vec2( w/2, -h/2),
         Vec2( w/2,  h/2),
         Vec2(-w/2,  h/2),
     };
-    std::unique_ptr<Body> ptr( new Body(x, y, v, m) );
+    std::shared_ptr<Body> ptr( new Body(x, y, v, m) );
 
     return ptr;
 }
 
 // Convenience Factory function
-std::unique_ptr<Body> Body::makeDiamond(double x, double y, double r, double m) {
+std::shared_ptr<Body> Body::makeDiamond(double x, double y, double r, double m) {
     std::vector<Vec2> v{
         Vec2( 0, -r),
         Vec2( r,  0),
         Vec2( 0,  r),
         Vec2(-r,  0),
     };
-    std::unique_ptr<Body> ptr( new Body(x, y, v, m) );
+    std::shared_ptr<Body> ptr( new Body(x, y, v, m) );
 
     return ptr;
 }

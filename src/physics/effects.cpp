@@ -17,7 +17,6 @@ bool PointEffect::isOver() {
     return !persistent;
 }
 
-
 void VectorEffect::render(SDL_Renderer* renderer) {
 
     setColor(renderer, Black);
